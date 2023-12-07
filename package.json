@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier -w .",
+    "format:check": "prettier -c ."
   },
   "repository": {
     "type": "git",
