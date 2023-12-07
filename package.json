@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "mocha tests/**/*.test.js",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },
@@ -20,7 +20,10 @@
   },
   "homepage": "https://github.com/glogg-lang/glogg#readme",
   "devDependencies": {
-    "jest": "^29.7.0",
+    "mocha": "^10.2.0",
     "prettier": "^3.1.0"
+  },
+  "imports": {
+    "#src/*": "./src/*.js"
   }
 }

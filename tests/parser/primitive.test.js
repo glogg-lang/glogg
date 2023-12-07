@@ -1,4 +1,10 @@
-import * as parse from "../../src/parser/primitive";
+import * as parse from "#src/parser/primitive";
+import * as assert from "node:assert";
 
-test("Can parse single char from string", () =>
-  expect(parse.chr("c")("cars")).toBe(true));
+describe("Parser primitives", () => {
+  describe("char", () => {
+    it("parses a single character from the start of a string", () => {
+      assert.ok(parse.char("c")("cars"));
+    });
+  });
+});
