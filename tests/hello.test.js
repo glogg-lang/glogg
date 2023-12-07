@@ -1,3 +1,1 @@
-test('Sample', () =>
-  expect(1).toBe(1)
-)
+test("Sample", () => expect(1).toBe(1));
