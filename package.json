@@ -1,0 +1,19 @@
+{
+  "name": "glogg-lang",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/glogg-lang/glogg.git"
+  },
+  "author": "Robin Heggelund Hansen",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/glogg-lang/glogg/issues"
+  },
+  "homepage": "https://github.com/glogg-lang/glogg#readme"
+}
