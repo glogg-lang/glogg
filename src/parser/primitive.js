@@ -48,3 +48,27 @@ export function oneOf(...parsers) {
     return { success: false };
   };
 }
+
+export function sequence(...parsers) {
+  return (str) => {
+    let rest = str;
+    let value = "";
+
+    for (const parser of parsers) {
+      const result = parser(rest);
+
+      if (result.success) {
+        rest = result.rest;
+        value += result.value;
+      } else {
+        return { success: false };
+      }
+    }
+
+    return {
+      success: true,
+      value: value,
+      rest: rest,
+    };
+  };
+}

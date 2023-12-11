@@ -69,4 +69,32 @@ describe("Parser primitives", () => {
       assert.ok(!parser("delta").success);
     });
   });
+
+  describe("sequence", () => {
+    it("combines multiple parsers", () => {
+      const parser = parse.sequence(
+        parse.char("("),
+        parse.digit,
+        parse.char(")"),
+      );
+
+      const result = parser("(5) is a number");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "(5)");
+      assert.equal(result.rest, " is a number");
+    });
+
+    it("fails if any sub-parser fails", () => {
+      const parser = parse.sequence(
+        parse.char("("),
+        parse.digit,
+        parse.char(")"),
+      );
+
+      const result = parser("(a) is a number");
+
+      assert.ok(!result.success);
+    });
+  });
 });
