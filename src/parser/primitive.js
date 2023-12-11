@@ -1,11 +1,21 @@
 export function char(c) {
   return (str) => {
-    return str[0] === c;
+    const char = str[0];
+    if (char === c) {
+      return {
+        success: true,
+        value: char,
+        rest: str.slice(1),
+      };
+    } else {
+      return { success: false };
+    }
   };
 }
 
 export function digit(str) {
-  switch (str[0]) {
+  const char = str[0];
+  switch (char) {
     case "0":
     case "1":
     case "2":
@@ -16,20 +26,25 @@ export function digit(str) {
     case "7":
     case "8":
     case "9":
-      return true;
+      return {
+        success: true,
+        value: char,
+        rest: str.slice(1),
+      };
     default:
-      return false;
+      return { success: false };
   }
 }
 
 export function oneOf(...parsers) {
   return (str) => {
     for (const parser of parsers) {
-      if (parser(str)) {
-        return true;
+      const result = parser(str);
+      if (result.success) {
+        return result;
       }
     }
 
-    return false;
+    return { success: false };
   };
 }
