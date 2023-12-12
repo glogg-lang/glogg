@@ -143,4 +143,36 @@ describe("Parser primitives", () => {
       assert.deepEqual(parser.run("12+5").forKeeps, ["12", "5"]);
     });
   });
+
+  describe("map", () => {
+    it("can further process a value once it's been parsed", () => {
+      const parser = parse.nOrMore(1, parse.digit).map(parseInt);
+      const result = parser.run("123456");
+
+      assert.ok(result.success);
+      assert.equal(result.value, 123456);
+    });
+
+    it("fails parsing if map operations throws", () => {
+      const parser = parse.nOrMore(1, parse.digit).map(parseInt);
+      const result = parser.run("hello");
+
+      assert.equal(result.success, false);
+    });
+
+    it("works for sequences and keeps, as well", () => {
+      const parser = parse
+        .sequence(
+          parse.nOrMore(1, parse.digit).map(parseInt).keep(),
+          parse.char("+"),
+          parse.nOrMore(1, parse.digit).map(parseInt).keep(),
+        )
+        .mapKeeps(([left, right]) => left + right);
+
+      const result = parser.run("12+8");
+
+      assert.ok(result.success);
+      assert.equal(result.value, 20);
+    });
+  });
 });

@@ -8,15 +8,60 @@ export class Parser {
     this.run = fn;
   }
 
-  keep() {
+  map(fn) {
+    const oldParser = this.run;
     return new Parser((str) => {
-      const result = this.run(str);
+      const result = oldParser(str);
+
+      if (!result.success) {
+        return result;
+      }
+
+      try {
+        const mapped = fn(result.value);
+
+        return {
+          ...result,
+          value: mapped,
+        };
+      } catch (_) {
+        return { success: false };
+      }
+    });
+  }
+
+  keep() {
+    const oldParser = this.run;
+    return new Parser((str) => {
+      const result = oldParser(str);
 
       if (result.success) {
         result.forKeeps = result.value;
       }
 
       return result;
+    });
+  }
+
+  mapKeeps(fn) {
+    const oldParser = this.run;
+    return new Parser((str) => {
+      const result = oldParser(str);
+
+      if (!result.success || !result.forKeeps) {
+        return result;
+      }
+
+      try {
+        const mapped = fn(result.forKeeps);
+
+        return {
+          ...result,
+          value: mapped,
+        };
+      } catch (_) {
+        return { success: false };
+      }
     });
   }
 }
