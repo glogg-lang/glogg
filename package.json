@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha tests/**/*.test.js",
+    "test": "mocha test/**/*.test.js",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },
