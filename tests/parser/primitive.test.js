@@ -95,4 +95,43 @@ describe("Parser primitives", () => {
       assert.deepEqual(parser("(a) is a number"), { success: false });
     });
   });
+
+  describe("nOrMore", () => {
+    it("matches a parser _at least_ N times", () => {
+      assert.deepEqual(parse.nOrMore(3, parse.digit)("123.456"), {
+        success: true,
+        value: "123",
+        rest: ".456",
+      });
+    });
+
+    it("if it cannot match N times, it fails", () => {
+      assert.deepEqual(parse.nOrMore(3, parse.digit)("12.456"), {
+        success: false,
+      });
+    });
+
+    it("continues matching past N", () => {
+      assert.deepEqual(parse.nOrMore(3, parse.digit)("123456+pi"), {
+        success: true,
+        value: "123456",
+        rest: "+pi",
+      });
+    });
+
+    it("more complicated case", () => {
+      assert.deepEqual(
+        parse.sequence(
+          parse.nOrMore(1, parse.digit),
+          parse.char("."),
+          parse.nOrMore(1, parse.digit),
+        )("1.0"),
+        {
+          success: true,
+          value: "1.0",
+          rest: "",
+        },
+      );
+    });
+  });
 });

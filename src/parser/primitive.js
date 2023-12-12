@@ -77,3 +77,33 @@ export function sequence(...parsers) {
     };
   };
 }
+
+export function nOrMore(n, parser) {
+  return (str) => {
+    let iterations = 0;
+    let value = "";
+    let rest = str;
+
+    while (true) {
+      const result = parser(rest);
+
+      if (result.success) {
+        value += result.value;
+        rest = result.rest;
+        iterations++;
+      } else {
+        break;
+      }
+    }
+
+    if (iterations >= n) {
+      return {
+        success: true,
+        value: value,
+        rest: rest,
+      };
+    }
+
+    return { success: false };
+  };
+}
