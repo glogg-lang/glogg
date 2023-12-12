@@ -3,8 +3,26 @@
 https://www.sitepen.com/blog/unlocking-the-power-of-parser-combinators-a-beginners-guide
 */
 
+export class Parser {
+  constructor(fn) {
+    this.run = fn;
+  }
+
+  keep() {
+    return new Parser((str) => {
+      const result = this.run(str);
+
+      if (result.success) {
+        result.forKeeps = result.value;
+      }
+
+      return result;
+    });
+  }
+}
+
 export function char(c) {
-  return (str) => {
+  return new Parser((str) => {
     const char = str[0];
     if (char === c) {
       return {
@@ -15,10 +33,10 @@ export function char(c) {
     } else {
       return { success: false };
     }
-  };
+  });
 }
 
-export function digit(str) {
+export const digit = new Parser((str) => {
   const char = str[0];
   switch (char) {
     case "0":
@@ -39,29 +57,29 @@ export function digit(str) {
     default:
       return { success: false };
   }
-}
+});
 
 export function oneOf(...parsers) {
-  return (str) => {
+  return new Parser((str) => {
     for (const parser of parsers) {
-      const result = parser(str);
+      const result = parser.run(str);
       if (result.success) {
         return result;
       }
     }
 
     return { success: false };
-  };
+  });
 }
 
 export function sequence(...parsers) {
-  return (str) => {
+  return new Parser((str) => {
     let rest = str;
     let value = "";
     let forKeeps = [];
 
     for (const parser of parsers) {
-      const result = parser(rest);
+      const result = parser.run(rest);
 
       if (result.success) {
         rest = result.rest;
@@ -75,28 +93,23 @@ export function sequence(...parsers) {
       }
     }
 
-    const result = {
+    return {
       success: true,
       value: value,
       rest: rest,
+      forKeeps: forKeeps.length === 0 ? undefined : forKeeps,
     };
-
-    if (forKeeps.length > 0) {
-      result.forKeeps = forKeeps;
-    }
-
-    return result;
-  };
+  });
 }
 
 export function nOrMore(n, parser) {
-  return (str) => {
+  return new Parser((str) => {
     let iterations = 0;
     let value = "";
     let rest = str;
 
     while (true) {
-      const result = parser(rest);
+      const result = parser.run(rest);
 
       if (result.success) {
         value += result.value;
@@ -116,17 +129,5 @@ export function nOrMore(n, parser) {
     }
 
     return { success: false };
-  };
-}
-
-export function keep(parser) {
-  return (str) => {
-    const result = parser(str);
-
-    if (result.success) {
-      result.forKeeps = result.value;
-    }
-
-    return result;
-  };
+  });
 }
