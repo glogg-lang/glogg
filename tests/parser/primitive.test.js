@@ -5,40 +5,40 @@ describe("Parser primitives", () => {
   describe("char", () => {
     it("parses a single character from the start of a string", () => {
       const parser = parse.char("c");
-      const result = parser("cars");
-
-      assert.ok(result.success);
-      assert.equal(result.value, "c");
-      assert.equal(result.rest, "ars");
+      assert.deepEqual(parser("cars"), {
+        success: true,
+        value: "c",
+        rest: "ars",
+      });
     });
 
     it("sanity check: fails if passed string starting with different character", () => {
       const parser = parse.char("b");
-      assert.ok(!parser("cars").success);
+      assert.equal(parser("cars").success, false);
     });
   });
 
   describe("digit", () => {
     it("parses 0-9", () => {
       for (const digit of "0123456789".split("")) {
-        const result = parse.digit(digit);
-
-        assert.ok(result.success);
-        assert.equal(result.value, digit);
-        assert.equal(result.rest, "");
+        assert.deepEqual(parse.digit(digit), {
+          success: true,
+          value: digit,
+          rest: "",
+        });
       }
     });
 
     it("parses a single digit", () => {
-      const result = parse.digit("0123456");
-
-      assert.ok(result.success);
-      assert.equal(result.value, "0");
-      assert.equal(result.rest, "123456");
+      assert.deepEqual(parse.digit("0123456"), {
+        success: true,
+        value: "0",
+        rest: "123456",
+      });
     });
 
     it("sanity check: fails if passed string starting with different character", () => {
-      assert.ok(!parse.digit("arr").success);
+      assert.equal(parse.digit("arr").success, false);
     });
   });
 
@@ -46,17 +46,17 @@ describe("Parser primitives", () => {
     it("succeeds if any given parser succeeds", () => {
       const parser = parse.oneOf(parse.digit, parse.char("e"));
 
-      let result = parser("100");
+      assert.deepEqual(parser("100"), {
+        success: true,
+        value: "1",
+        rest: "00",
+      });
 
-      assert.ok(result.success);
-      assert.equal(result.value, "1");
-      assert.equal(result.rest, "00");
-
-      result = parser("e10");
-
-      assert.ok(result.success);
-      assert.equal(result.value, "e");
-      assert.equal(result.rest, "10");
+      assert.deepEqual(parser("e10"), {
+        success: true,
+        value: "e",
+        rest: "10",
+      });
     });
 
     it("fails if no given parser succeeds", () => {
@@ -66,7 +66,7 @@ describe("Parser primitives", () => {
         parse.char("c"),
       );
 
-      assert.ok(!parser("delta").success);
+      assert.equal(parser("delta").success, false);
     });
   });
 
@@ -78,11 +78,11 @@ describe("Parser primitives", () => {
         parse.char(")"),
       );
 
-      const result = parser("(5) is a number");
-
-      assert.ok(result.success);
-      assert.equal(result.value, "(5)");
-      assert.equal(result.rest, " is a number");
+      assert.deepEqual(parser("(5) is a number"), {
+        success: true,
+        value: "(5)",
+        rest: " is a number",
+      });
     });
 
     it("fails if any sub-parser fails", () => {
@@ -92,9 +92,7 @@ describe("Parser primitives", () => {
         parse.char(")"),
       );
 
-      const result = parser("(a) is a number");
-
-      assert.ok(!result.success);
+      assert.deepEqual(parser("(a) is a number"), { success: false });
     });
   });
 });
