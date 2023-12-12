@@ -53,6 +53,20 @@ describe("Parser primitives", () => {
     });
   });
 
+  describe("end", () => {
+    it("checks for the end of input", () => {
+      const result = parse.end.run("");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "");
+      assert.equal(result.rest, "");
+    });
+
+    it("fails if any input remains", () => {
+      assert.equal(parse.end.run(" ").success, false);
+    });
+  });
+
   describe("digit", () => {
     it("parses 0-9", () => {
       for (const digit of "0123456789".split("")) {
@@ -74,6 +88,62 @@ describe("Parser primitives", () => {
 
     it("sanity check: fails if passed string starting with different character", () => {
       assert.equal(parse.digit.run("arr").success, false);
+    });
+  });
+
+  describe("lowercase", () => {
+    it("parses a single unicode lowercase letter", () => {
+      for (const letter of ["a", "z", "ø"]) {
+        const result = parse.lowercase.run(letter);
+
+        assert.ok(result.success);
+        assert.equal(result.value, letter);
+        assert.equal(result.rest, "");
+      }
+    });
+
+    it("fails on uppercase letters", () => {
+      assert.equal(parse.lowercase.run("A").success, false);
+    });
+
+    it("fails on numbers", () => {
+      assert.equal(parse.lowercase.run("1").success, false);
+    });
+
+    it("fails on punctiation", () => {
+      assert.equal(parse.lowercase.run(".").success, false);
+    });
+
+    it("fails on empty string", () => {
+      assert.equal(parse.lowercase.run("").success, false);
+    });
+  });
+
+  describe("uppercase", () => {
+    it("parses a single unicode uppercase letter", () => {
+      for (const letter of ["A", "Z", "Å"]) {
+        const result = parse.uppercase.run(letter);
+
+        assert.ok(result.success);
+        assert.equal(result.value, letter);
+        assert.equal(result.rest, "");
+      }
+    });
+
+    it("fails on lowercase letters", () => {
+      assert.equal(parse.uppercase.run("a").success, false);
+    });
+
+    it("fails on numbers", () => {
+      assert.equal(parse.uppercase.run("1").success, false);
+    });
+
+    it("fails on punctiation", () => {
+      assert.equal(parse.uppercase.run(".").success, false);
+    });
+
+    it("fails on empty string", () => {
+      assert.equal(parse.uppercase.run("").success, false);
     });
   });
 

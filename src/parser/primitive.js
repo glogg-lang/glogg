@@ -114,6 +114,18 @@ export const whitespace = new Parser((str) => {
   }
 });
 
+export const end = new Parser((str) => {
+  if (str === "") {
+    return {
+      success: true,
+      value: "",
+      rest: "",
+    };
+  }
+
+  return { success: false };
+});
+
 export const digit = new Parser((str) => {
   const char = str[0];
   switch (char) {
@@ -135,6 +147,36 @@ export const digit = new Parser((str) => {
     default:
       return { success: false };
   }
+});
+
+const lowercaseRegex = /\p{Ll}/u;
+
+export const lowercase = new Parser((str) => {
+  const char = str[0];
+  if (!!char && lowercaseRegex.test(char)) {
+    return {
+      success: true,
+      value: char,
+      rest: str.slice(1),
+    };
+  }
+
+  return { success: false };
+});
+
+const uppercaseRegex = /\p{Lu}/u;
+
+export const uppercase = new Parser((str) => {
+  const char = str[0];
+  if (uppercaseRegex.test(char)) {
+    return {
+      success: true,
+      value: char,
+      rest: str.slice(1),
+    };
+  }
+
+  return { success: false };
 });
 
 export function oneOf(...parsers) {

@@ -26,4 +26,40 @@ describe("Atom parsing", () => {
       assert.equal(res2.rest, "abc");
     });
   });
+
+  describe("name", () => {
+    it("a name starts with a lowercase letter, and contains lowercase letters, hyphens and numbers", () => {
+      const input = "ny-båre1";
+      const result = parse.name.run(input);
+
+      assert.ok(result.success);
+      assert.equal(result.value, input);
+      assert.equal(result.rest, "");
+    });
+
+    it("cannot begin with a number", () => {
+      assert.equal(parse.name.run("1bar").success, false);
+    });
+
+    it("cannot begin with a hyphen", () => {
+      assert.equal(parse.name.run("-foo").success, false);
+    });
+
+    it("cannot begin with a uppercase letter", () => {
+      assert.equal(parse.name.run("Fbar").success, false);
+    });
+
+    it("cannot contain uppercase letters", () => {
+      assert.equal(parse.name.run("fooBar").success, false);
+    });
+
+    it("cannot contain spaces", () => {
+      const result = parse.name.run("foo bar");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "foo");
+      // requires a space at the end of the name, and therefore consumes those spaces
+      assert.equal(result.rest, "bar");
+    });
+  });
 });
