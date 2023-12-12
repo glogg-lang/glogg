@@ -134,4 +134,16 @@ describe("Parser primitives", () => {
       );
     });
   });
+
+  describe("keep", () => {
+    it("let's us 'keep' or extract values from parsers", () => {
+      const parser = parse.sequence(
+        parse.keep(parse.nOrMore(1, parse.digit)),
+        parse.char("+"),
+        parse.keep(parse.nOrMore(1, parse.digit)),
+      );
+
+      assert.deepEqual(parser("12+5").forKeeps, ["12", "5"]);
+    });
+  });
 });

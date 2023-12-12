@@ -58,6 +58,7 @@ export function sequence(...parsers) {
   return (str) => {
     let rest = str;
     let value = "";
+    let forKeeps = [];
 
     for (const parser of parsers) {
       const result = parser(rest);
@@ -65,16 +66,26 @@ export function sequence(...parsers) {
       if (result.success) {
         rest = result.rest;
         value += result.value;
+
+        if (result.forKeeps) {
+          forKeeps.push(result.value);
+        }
       } else {
         return { success: false };
       }
     }
 
-    return {
+    const result = {
       success: true,
       value: value,
       rest: rest,
     };
+
+    if (forKeeps.length > 0) {
+      result.forKeeps = forKeeps;
+    }
+
+    return result;
   };
 }
 
@@ -105,5 +116,17 @@ export function nOrMore(n, parser) {
     }
 
     return { success: false };
+  };
+}
+
+export function keep(parser) {
+  return (str) => {
+    const result = parser(str);
+
+    if (result.success) {
+      result.forKeeps = result.value;
+    }
+
+    return result;
   };
 }
