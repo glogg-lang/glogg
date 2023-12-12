@@ -81,6 +81,22 @@ export function char(c) {
   });
 }
 
+export function word(word) {
+  return new Parser((str) => {
+    const substr = str.slice(0, word.length);
+
+    if (substr === word) {
+      return {
+        success: true,
+        value: substr,
+        rest: str.slice(word.length),
+      };
+    }
+
+    return { success: false };
+  });
+}
+
 export const digit = new Parser((str) => {
   const char = str[0];
   switch (char) {

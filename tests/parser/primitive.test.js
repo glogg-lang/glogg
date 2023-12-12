@@ -18,6 +18,25 @@ describe("Parser primitives", () => {
     });
   });
 
+  describe("word", () => {
+    it("matches a string", () => {
+      const parser = parse.word("hello");
+      const result = parser.run("hello world");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "hello");
+      assert.equal(result.rest, " world");
+    });
+
+    it("fails if the strings doesn't match", () => {
+      assert.equal(parse.word("hello").run("hallo").success, false);
+    });
+
+    it("fails if the string to parse isn't long enough", () => {
+      assert.equal(parse.word("hello").run("hell").success, false);
+    });
+  });
+
   describe("digit", () => {
     it("parses 0-9", () => {
       for (const digit of "0123456789".split("")) {
