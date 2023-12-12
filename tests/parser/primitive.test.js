@@ -5,11 +5,11 @@ describe("Parser primitives", () => {
   describe("char", () => {
     it("parses a single character from the start of a string", () => {
       const parser = parse.char("c");
-      assert.deepEqual(parser("cars"), {
-        success: true,
-        value: "c",
-        rest: "ars",
-      });
+      const result = parser("cars");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "c");
+      assert.equal(result.rest, "ars");
     });
 
     it("sanity check: fails if passed string starting with different character", () => {
@@ -21,20 +21,20 @@ describe("Parser primitives", () => {
   describe("digit", () => {
     it("parses 0-9", () => {
       for (const digit of "0123456789".split("")) {
-        assert.deepEqual(parse.digit(digit), {
-          success: true,
-          value: digit,
-          rest: "",
-        });
+        const result = parse.digit(digit);
+
+        assert.ok(result.success);
+        assert.equal(result.value, digit);
+        assert.equal(result.rest, "");
       }
     });
 
     it("parses a single digit", () => {
-      assert.deepEqual(parse.digit("0123456"), {
-        success: true,
-        value: "0",
-        rest: "123456",
-      });
+      const result = parse.digit("0123456");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "0");
+      assert.equal(result.rest, "123456");
     });
 
     it("sanity check: fails if passed string starting with different character", () => {
@@ -46,17 +46,17 @@ describe("Parser primitives", () => {
     it("succeeds if any given parser succeeds", () => {
       const parser = parse.oneOf(parse.digit, parse.char("e"));
 
-      assert.deepEqual(parser("100"), {
-        success: true,
-        value: "1",
-        rest: "00",
-      });
+      const res1 = parser("100");
 
-      assert.deepEqual(parser("e10"), {
-        success: true,
-        value: "e",
-        rest: "10",
-      });
+      assert.ok(res1.success);
+      assert.equal(res1.value, "1");
+      assert.equal(res1.rest, "00");
+
+      const res2 = parser("e10");
+
+      assert.ok(res2.success);
+      assert.equal(res2.value, "e");
+      assert.equal(res2.rest, "10");
     });
 
     it("fails if no given parser succeeds", () => {
@@ -78,11 +78,11 @@ describe("Parser primitives", () => {
         parse.char(")"),
       );
 
-      assert.deepEqual(parser("(5) is a number"), {
-        success: true,
-        value: "(5)",
-        rest: " is a number",
-      });
+      const res = parser("(5) is a number");
+
+      assert.ok(res.success);
+      assert.equal(res.value, "(5)");
+      assert.equal(res.rest, " is a number");
     });
 
     it("fails if any sub-parser fails", () => {
@@ -92,46 +92,41 @@ describe("Parser primitives", () => {
         parse.char(")"),
       );
 
-      assert.deepEqual(parser("(a) is a number"), { success: false });
+      assert.equal(parser("(a) is a number").success, false);
     });
   });
 
   describe("nOrMore", () => {
     it("matches a parser _at least_ N times", () => {
-      assert.deepEqual(parse.nOrMore(3, parse.digit)("123.456"), {
-        success: true,
-        value: "123",
-        rest: ".456",
-      });
+      const result = parse.nOrMore(3, parse.digit)("123.456");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "123");
+      assert.equal(result.rest, ".456");
     });
 
     it("if it cannot match N times, it fails", () => {
-      assert.deepEqual(parse.nOrMore(3, parse.digit)("12.456"), {
-        success: false,
-      });
+      assert.equal(parse.nOrMore(3, parse.digit)("12.456").success, false);
     });
 
     it("continues matching past N", () => {
-      assert.deepEqual(parse.nOrMore(3, parse.digit)("123456+pi"), {
-        success: true,
-        value: "123456",
-        rest: "+pi",
-      });
+      const result = parse.nOrMore(3, parse.digit)("123456+pi");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "123456");
+      assert.equal(result.rest, "+pi");
     });
 
     it("more complicated case", () => {
-      assert.deepEqual(
-        parse.sequence(
-          parse.nOrMore(1, parse.digit),
-          parse.char("."),
-          parse.nOrMore(1, parse.digit),
-        )("1.0"),
-        {
-          success: true,
-          value: "1.0",
-          rest: "",
-        },
-      );
+      const result = parse.sequence(
+        parse.nOrMore(1, parse.digit),
+        parse.char("."),
+        parse.nOrMore(1, parse.digit),
+      )("1.0");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "1.0");
+      assert.equal(result.rest, "");
     });
   });
 
