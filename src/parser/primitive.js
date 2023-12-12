@@ -97,6 +97,23 @@ export function word(word) {
   });
 }
 
+export const whitespace = new Parser((str) => {
+  const char = str[0];
+  switch (char) {
+    case " ":
+    case "\r":
+    case "\n":
+    case "\t":
+      return {
+        success: true,
+        value: char,
+        rest: str.slice(1),
+      };
+    default:
+      return { success: false };
+  }
+});
+
 export const digit = new Parser((str) => {
   const char = str[0];
   switch (char) {

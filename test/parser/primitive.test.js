@@ -37,6 +37,22 @@ describe("Parser primitives", () => {
     });
   });
 
+  describe("whitespace", () => {
+    it("parses a single whitespace character", () => {
+      for (const input of " \r\n\t".split("")) {
+        const result = parse.whitespace.run(input);
+
+        assert.ok(result.success);
+        assert.equal(result.value, input);
+        assert.equal(result.rest, "");
+      }
+    });
+
+    it("fails for any other kind of character", () => {
+      assert.equal(parse.whitespace.run("a").success, false);
+    });
+  });
+
   describe("digit", () => {
     it("parses 0-9", () => {
       for (const digit of "0123456789".split("")) {
