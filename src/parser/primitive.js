@@ -1,3 +1,8 @@
+/* Based on: Unlocking the Power of Parser Combinators by Rory Mulligan
+
+https://www.sitepen.com/blog/unlocking-the-power-of-parser-combinators-a-beginners-guide
+*/
+
 export function char(c) {
   return (str) => {
     const char = str[0];
