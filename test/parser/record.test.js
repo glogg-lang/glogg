@@ -34,5 +34,19 @@ describe("Record parsing", () => {
       assert.ok(result.success);
       assert.deepEqual(result.value, { name: "Robin", hobby: "programming" });
     });
+
+    it("#person expands to tag: 'person'", () => {
+      const result = parse.nonEmptyRecord.run("[#person]");
+
+      assert.ok(result.success);
+      assert.deepEqual(result.value, { tag: "person" });
+    });
+
+    it("can mix tags with key values", () => {
+      const result = parse.nonEmptyRecord.run('[#person name: "Robin"]');
+
+      assert.ok(result.success);
+      assert.deepEqual(result.value, { tag: "person", name: "Robin" });
+    });
   });
 });

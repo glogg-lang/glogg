@@ -5,6 +5,10 @@ export const emptyRecord = parse
   .sequence(parse.char("["), atom.whitespace, parse.char("]"))
   .map((_) => ({}));
 
+const tag = parse
+  .sequence(parse.char("#"), atom.name.keep(), atom.whitespace)
+  .mapKeeps(([name]) => ["tag", name]);
+
 const keyValuePair = parse
   .sequence(
     atom.name.keep(),
@@ -20,7 +24,7 @@ export const nonEmptyRecord = parse
   .sequence(
     parse.char("["),
     atom.whitespace,
-    parse.nOrMore(1, keyValuePair).keep(),
+    parse.nOrMore(1, parse.oneOf(tag, keyValuePair)).keep(),
     parse.char("]"),
   )
   .mapKeeps(([val]) => {

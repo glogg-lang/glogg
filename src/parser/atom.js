@@ -9,7 +9,12 @@ export const name = parse
     parse.lowercase.keep(),
     parse.nOrMore(0, nameInner).keep(),
     parse
-      .oneOf(parse.end, parse.char(":"), parse.nOrMore(1, parse.whitespace))
+      .oneOf(
+        parse.end,
+        parse.char(":"),
+        parse.char("]"),
+        parse.nOrMore(1, parse.whitespace),
+      )
       .backtrack(),
   )
   .mapKeeps(([first, rest]) => {
