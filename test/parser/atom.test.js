@@ -8,7 +8,7 @@ describe("Atom parsing", () => {
       const result = parse.whitespace.run(input);
 
       assert.ok(result.success);
-      assert.equal(result.value, input);
+      assert.equal(result.value.join(""), input);
       assert.equal(result.rest, "");
     });
 
@@ -58,8 +58,18 @@ describe("Atom parsing", () => {
 
       assert.ok(result.success);
       assert.equal(result.value, "foo");
-      // requires a space at the end of the name, and therefore consumes those spaces
-      assert.equal(result.rest, "bar");
+      assert.equal(result.rest, " bar");
+    });
+  });
+
+  describe("string", () => {
+    it('Begins and ends with ", contains arbitrary text', () => {
+      const input = '"this is a test 🥳"';
+      const result = parse.string.run(input);
+
+      assert.ok(result.success);
+      assert.equal(result.value, input.slice(1, -1));
+      assert.equal(result.rest, "");
     });
   });
 });

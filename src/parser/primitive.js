@@ -43,6 +43,19 @@ export class Parser {
     });
   }
 
+  backtrack() {
+    const oldParser = this.run;
+    return new Parser((str) => {
+      const result = oldParser(str);
+
+      if (result.success) {
+        result.rest = result.value + result.rest;
+      }
+
+      return result;
+    });
+  }
+
   mapKeeps(fn) {
     const oldParser = this.run;
     return new Parser((str) => {
@@ -70,6 +83,21 @@ export function char(c) {
   return new Parser((str) => {
     const char = str[0];
     if (char === c) {
+      return {
+        success: true,
+        value: char,
+        rest: str.slice(1),
+      };
+    } else {
+      return { success: false };
+    }
+  });
+}
+
+export function anythingBut(c) {
+  return new Parser((str) => {
+    const char = str[0];
+    if (char !== c) {
       return {
         success: true,
         value: char,
@@ -195,7 +223,7 @@ export function oneOf(...parsers) {
 export function sequence(...parsers) {
   return new Parser((str) => {
     let rest = str;
-    let value = "";
+    let value = [];
     let forKeeps = [];
 
     for (const parser of parsers) {
@@ -203,7 +231,7 @@ export function sequence(...parsers) {
 
       if (result.success) {
         rest = result.rest;
-        value += result.value;
+        value.push(result.value);
 
         if (result.forKeeps) {
           forKeeps.push(result.value);
@@ -225,14 +253,14 @@ export function sequence(...parsers) {
 export function nOrMore(n, parser) {
   return new Parser((str) => {
     let iterations = 0;
-    let value = "";
+    let value = [];
     let rest = str;
 
     while (true) {
       const result = parser.run(rest);
 
       if (result.success) {
-        value += result.value;
+        value.push(result.value);
         rest = result.rest;
         iterations++;
       } else {

@@ -18,6 +18,22 @@ describe("Parser primitives", () => {
     });
   });
 
+  describe("anythingBut", () => {
+    it("Accepts anything except a specific character", () => {
+      const result = parse.anythingBut(";").run("here; but no longer");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "h");
+      assert.equal(result.rest, "ere; but no longer");
+    });
+
+    it("Fails if given the specific character", () => {
+      const result = parse.anythingBut(";").run("; but no longer");
+
+      assert.equal(result.success, false);
+    });
+  });
+
   describe("word", () => {
     it("matches a string", () => {
       const parser = parse.word("hello");
@@ -186,7 +202,7 @@ describe("Parser primitives", () => {
       const res = parser.run("(5) is a number");
 
       assert.ok(res.success);
-      assert.equal(res.value, "(5)");
+      assert.equal(res.value.join(""), "(5)");
       assert.equal(res.rest, " is a number");
     });
 
@@ -206,7 +222,7 @@ describe("Parser primitives", () => {
       const result = parse.nOrMore(3, parse.digit).run("123.456");
 
       assert.ok(result.success);
-      assert.equal(result.value, "123");
+      assert.equal(result.value.join(""), "123");
       assert.equal(result.rest, ".456");
     });
 
@@ -218,21 +234,21 @@ describe("Parser primitives", () => {
       const result = parse.nOrMore(3, parse.digit).run("123456+pi");
 
       assert.ok(result.success);
-      assert.equal(result.value, "123456");
+      assert.equal(result.value.join(""), "123456");
       assert.equal(result.rest, "+pi");
     });
 
     it("more complicated case", () => {
       const result = parse
         .sequence(
-          parse.nOrMore(1, parse.digit),
+          parse.nOrMore(1, parse.digit).map((digits) => digits.join("")),
           parse.char("."),
-          parse.nOrMore(1, parse.digit),
+          parse.nOrMore(1, parse.digit).map((digits) => digits.join("")),
         )
         .run("1.0");
 
       assert.ok(result.success);
-      assert.equal(result.value, "1.0");
+      assert.equal(result.value.join(""), "1.0");
       assert.equal(result.rest, "");
     });
   });
@@ -245,13 +261,31 @@ describe("Parser primitives", () => {
         parse.nOrMore(1, parse.digit).keep(),
       );
 
-      assert.deepEqual(parser.run("12+5").forKeeps, ["12", "5"]);
+      assert.deepEqual(parser.run("12+5").forKeeps, [["1", "2"], ["5"]]);
+    });
+  });
+
+  describe("backtrack", () => {
+    it("unconsumes characters from a successfull parser", () => {
+      const parser = parse.sequence(
+        parse.char("a"),
+        parse.char("b"),
+        parse.char(";").backtrack(),
+      );
+
+      const result = parser.run("ab;");
+
+      assert.ok(result.success);
+      assert.equal(result.value.join(""), "ab;");
+      assert.equal(result.rest, ";");
     });
   });
 
   describe("map", () => {
     it("can further process a value once it's been parsed", () => {
-      const parser = parse.nOrMore(1, parse.digit).map(parseInt);
+      const parser = parse
+        .nOrMore(1, parse.digit)
+        .map((digits) => parseInt(digits.join("")));
       const result = parser.run("123456");
 
       assert.ok(result.success);
@@ -268,9 +302,15 @@ describe("Parser primitives", () => {
     it("works for sequences and keeps, as well", () => {
       const parser = parse
         .sequence(
-          parse.nOrMore(1, parse.digit).map(parseInt).keep(),
+          parse
+            .nOrMore(1, parse.digit)
+            .map((digits) => parseInt(digits.join("")))
+            .keep(),
           parse.char("+"),
-          parse.nOrMore(1, parse.digit).map(parseInt).keep(),
+          parse
+            .nOrMore(1, parse.digit)
+            .map((digits) => parseInt(digits.join("")))
+            .keep(),
         )
         .mapKeeps(([left, right]) => left + right);
 

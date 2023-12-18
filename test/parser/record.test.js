@@ -20,10 +20,19 @@ describe("Record parsing", () => {
 
   describe("non-empty record", () => {
     it("describing a record with a key value pair", () => {
-      const result = parse.nonEmptyRecord.run("[name: 'Robin']");
+      const result = parse.nonEmptyRecord.run('[name: "Robin"]');
 
       assert.ok(result.success);
       assert.deepEqual(result.value, { name: "Robin" });
+    });
+
+    it("works with multiple pairs", () => {
+      const result = parse.nonEmptyRecord.run(
+        '[name: "Robin" hobby: "programming"]',
+      );
+
+      assert.ok(result.success);
+      assert.deepEqual(result.value, { name: "Robin", hobby: "programming" });
     });
   });
 });
