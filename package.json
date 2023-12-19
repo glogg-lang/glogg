@@ -25,5 +25,8 @@
   },
   "imports": {
     "#src/*": "./src/*.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
   }
 }
