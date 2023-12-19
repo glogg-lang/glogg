@@ -6,13 +6,34 @@ sqlite.verbose();
 export async function setup(connectionString) {
   const db = new sqlite.Database(connectionString);
 
-  // TODO: split in permanent and run-once pragmas
-  await run("PRAGMA encoding = 'UTF-8'", {}, db);
+  const name = await get(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='query'",
+    {},
+    db,
+  );
+
+  if (!name) {
+    // query table doesn't exist, likely brand new database
+    await run("PRAGMA encoding = 'UTF-8'", {}, db);
+    // decided semi-randomly. can be used to verify that a sqlite database is a gløgg db
+    await run("PRAGMA application_id=267324090", {}, db);
+  }
+
   await run("PRAGMA foreign_keys = ON", {}, db);
 
-  for (const migration of migrations) {
+  const { user_version: migratedVersion } = await get(
+    "PRAGMA user_version",
+    {},
+    db,
+  );
+
+  const unappliedMigrations = migrations.slice(migratedVersion).flat();
+
+  for (const migration of unappliedMigrations) {
     await run(migration, {}, db);
   }
+
+  await run("PRAGMA user_version = " + migrations.length, {}, db);
 
   return db;
 }
@@ -26,6 +47,19 @@ export function run(str, params, db) {
       }
 
       res();
+    });
+  });
+}
+
+export function get(str, params, db) {
+  return new Promise((res, rej) => {
+    db.get(str, params, (err, row) => {
+      if (err) {
+        rej(err);
+        return;
+      }
+
+      res(row);
     });
   });
 }
