@@ -1,0 +1,17 @@
+export const migrations = [
+  `CREATE TABLE query (
+    id INTEGER PRIMARY KEY
+  ) STRICT`,
+  `CREATE TABLE search (
+    id INTEGER PRIMARY KEY,
+    query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE
+  ) STRICT`,
+  `CREATE TABLE bind (
+    id INTEGER PRIMARY KEY,
+    query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE
+  ) STRICT`,
+  `CREATE TABLE 'commit' (
+    id INTEGER PRIMARY KEY,
+    query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE
+  ) STRICT`,
+];
