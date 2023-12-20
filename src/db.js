@@ -63,3 +63,16 @@ export function get(str, params, db) {
     });
   });
 }
+
+export function all(str, params, db) {
+  return new Promise((res, rej) => {
+    db.all(str, params, (err, row) => {
+      if (err) {
+        rej(err);
+        return;
+      }
+
+      res(row);
+    });
+  });
+}

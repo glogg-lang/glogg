@@ -17,9 +17,9 @@ export const migrations = [
     ) STRICT`,
     `CREATE TABLE clause (
       id INTEGER PRIMARY KEY,
-      search_id INTEGER NOT NULL REFERENCES search(id) ON DELETE CASCADE,
-      bind_id INTEGER NOT NULL REFERENCES bind(id) ON DELETE CASCADE,
-      commit_id INTEGER NOT NULL REFERENCES 'commit'(id) ON DELETE CASCADE,
+      search_id INTEGER REFERENCES search(id) ON DELETE CASCADE,
+      bind_id INTEGER REFERENCES bind(id) ON DELETE CASCADE,
+      commit_id INTEGER REFERENCES 'commit'(id) ON DELETE CASCADE,
       alias TEXT,
       'order' INTEGER NOT NULL
     ) STRICT`,
