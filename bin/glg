@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+
+import * as process from "node:process"
+import path from "node:path"
+import * as fs from "node:fs"
+import * as childProcess from "node:child_process"
+import * as glogDb from "#src/db"
+import * as ast from "#src/ast"
+
+const cmd = process.argv[2]
+
+async function init() {
+  const [dbExists, dbPath] = getDbPath()
+
+  if (dbExists) {
+    console.log("Database already exists at: " + dbPath)
+    return;
+  }
+
+  await glogDb.setup(dbPath)
+}
+
+async function edit() {
+  const [dbExists, dbPath] = getDbPath()
+
+  if (!dbExists) {
+    console.log("No database found, cannot start edit.")
+    return
+  }
+
+  const editor = process.env["EDITOR"]
+
+  if (!editor) {
+    console.log("No editor set. Please define your preferred text editor by seeting the EDTIOR environment variable.")
+    return
+  }
+
+  const store = await glogDb.setup(dbPath)
+  
+  const draftPath = path.join(process.cwd(), "draft.glogg")
+
+  const existingCode = await ast.load(store)
+  fs.writeFileSync(draftPath, existingCode, { encoding: 'utf-8'})
+
+  childProcess.spawnSync(editor, [draftPath], { stdio: 'inherit' })
+
+  const writtenCode = fs.readFileSync(draftPath, { encoding: 'utf-8'})
+  await ast.save(store, writtenCode)
+
+  fs.rmSync(draftPath)
+
+  store.close()
+}
+
+function getDbPath() {
+  const dbPath = path.join(process.cwd(), "app.glogg.db")
+  const exists = fs.existsSync(dbPath)
+
+  return [exists, dbPath]
+}
+
+switch (cmd) {
+  case 'init':
+    init();
+    break;
+
+  case 'edit':
+    edit()
+    break;
+
+  default:
+    console.log([
+      "Welcome to the Gløgg language!",
+      "Available commands: init, edit",
+      "",
+      "init: setup a new database",
+      "edit: edit contents of a database"
+    ].join('\n'))
+}
