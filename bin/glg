@@ -61,6 +61,20 @@ function getDbPath() {
   return [exists, dbPath];
 }
 
+async function diff() {
+  const currentPath = process.argv[4];
+  const targetPath = process.argv[5];
+
+  const currentDb = await glogDb.setup(currentPath);
+  const targetDb = await glogDb.setup(targetPath);
+
+  const currentAst = await ast.load(currentDb);
+  const targetAst = await ast.load(targetDb);
+
+  console.log(currentAst);
+  console.log(targetAst);
+}
+
 switch (cmd) {
   case "init":
     init();
@@ -68,6 +82,14 @@ switch (cmd) {
 
   case "edit":
     edit();
+    break;
+
+  case "git":
+    if (process.argv[3] === "diff") {
+      diff();
+    } else {
+      console.log("Unknown sub-command");
+    }
     break;
 
   default:
