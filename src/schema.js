@@ -26,9 +26,10 @@ export const migrations = [
     `CREATE TABLE 'constraint' (
       id INTEGER PRIMARY KEY,
       clause_id INTEGER NOT NULL REFERENCES clause(id) ON DELETE CASCADE,
-      column TEXT NOT NULL,
+      label TEXT NOT NULL,
       value ANY NOT NULL,
-      operator TEXT NOT NULL
+      type TEXT NOT NULL,
+      operation TEXT NOT NULL
     ) STRICT`,
   ],
 ];

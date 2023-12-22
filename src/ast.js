@@ -31,17 +31,18 @@ export async function save(store, code) {
       store,
     );
 
-    for (const [name, value] of Object.entries(commitClause)) {
+    for (const [label, value] of Object.entries(commitClause)) {
       await db.get(
         [
-          "INSERT INTO 'constraint' (clause_id, column, value, operator)",
-          "VALUES ($clauseId, $column, $value, $operator)",
+          "INSERT INTO 'constraint' (clause_id, label, value, type, operation)",
+          "VALUES ($clauseId, $label, $value, $type, $operation)",
         ].join(""),
         {
           $clauseId: clauseId,
-          $column: name,
+          $label: label,
           $value: value,
-          $operator: "=",
+          $type: typeof value,
+          $operation: "SET",
         },
         store,
       );
@@ -80,10 +81,10 @@ export async function load(store) {
         );
 
         for (const constraint of constraints) {
-          if (constraint.column === "tag") {
+          if (constraint.label === "tag") {
             result += ` #${constraint.value}`;
           } else {
-            result += ` ${constraint.column}: "${constraint.value}"`;
+            result += ` ${constraint.label}: "${constraint.value}"`;
           }
         }
 
