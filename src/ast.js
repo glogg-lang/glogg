@@ -2,51 +2,65 @@ import * as parser from "#src/parser/query";
 import * as db from "#src/db";
 
 export async function save(store, code) {
+  if (code.trim().length === 0) {
+    return;
+  }
+
   const parsed = parser.query.run(code);
 
-  const { id: queryId } = await db.get(
-    "INSERT INTO query DEFAULT VALUES RETURNING *",
-    {},
-    store,
-  );
+  await db.run("BEGIN", {}, store);
 
-  const { id: commitId } = await db.get(
-    "INSERT INTO 'commit' (query_id) VALUES ($queryId) RETURNING *",
-    { $queryId: queryId },
-    store,
-  );
-
-  for (const [idx, commitClause] of parsed.value.commit.entries()) {
-    const { id: clauseId } = await db.get(
-      [
-        "INSERT INTO clause (search_id, bind_id, commit_id, alias, 'order')",
-        "VALUES (NULL, NULL, $commitId, $alias, $order)",
-        "RETURNING *",
-      ].join(" "),
-      {
-        $commitId: commitId,
-        $alias: null,
-        $order: idx,
-      },
+  try {
+    const { id: queryId } = await db.get(
+      "INSERT INTO query DEFAULT VALUES RETURNING *",
+      {},
       store,
     );
 
-    for (const [label, value] of Object.entries(commitClause)) {
-      await db.get(
+    const { id: commitId } = await db.get(
+      "INSERT INTO 'commit' (query_id) VALUES ($queryId) RETURNING *",
+      { $queryId: queryId },
+      store,
+    );
+
+    for (const [idx, commitClause] of parsed.value.commit.entries()) {
+      const { id: clauseId } = await db.get(
         [
-          "INSERT INTO 'constraint' (clause_id, label, value, type, operation)",
-          "VALUES ($clauseId, $label, $value, $type, $operation)",
-        ].join(""),
+          "INSERT INTO clause (search_id, bind_id, commit_id, alias, 'order')",
+          "VALUES (NULL, NULL, $commitId, $alias, $order)",
+          "RETURNING *",
+        ].join(" "),
         {
-          $clauseId: clauseId,
-          $label: label,
-          $value: value,
-          $type: typeof value,
-          $operation: "SET",
+          $commitId: commitId,
+          $alias: null,
+          $order: idx,
         },
         store,
       );
+
+      for (const [label, value] of Object.entries(commitClause)) {
+        await db.get(
+          [
+            "INSERT INTO 'constraint' (clause_id, label, value, type, operation)",
+            "VALUES ($clauseId, $label, $value, $type, $operation)",
+          ].join(""),
+          {
+            $clauseId: clauseId,
+            $label: label,
+            $value: value,
+            $type: typeof value,
+            $operation: "SET",
+          },
+          store,
+        );
+      }
     }
+
+    await db.run("COMMIT", {}, store);
+  } catch (e) {
+    console.error(e);
+
+    await db.run("ROLLBACK", {}, store);
   }
 }
 
