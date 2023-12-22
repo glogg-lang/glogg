@@ -61,7 +61,7 @@ export class Parser {
     return new Parser((str) => {
       const result = oldParser(str);
 
-      if (!result.success || !result.forKeeps) {
+      if (!result.success || typeof result.forKeeps === "undefined") {
         return result;
       }
 
@@ -233,7 +233,7 @@ export function sequence(...parsers) {
         rest = result.rest;
         value.push(result.value);
 
-        if (result.forKeeps) {
+        if (typeof result.forKeeps !== "undefined") {
           forKeeps.push(result.value);
         }
       } else {

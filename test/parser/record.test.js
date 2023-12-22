@@ -27,12 +27,10 @@ describe("Record parsing", () => {
     });
 
     it("works with multiple pairs", () => {
-      const result = parse.nonEmptyRecord.run(
-        '[name: "Robin" hobby: "programming"]',
-      );
+      const result = parse.nonEmptyRecord.run('[name: "Robin" pets: 0 ]');
 
       assert.ok(result.success);
-      assert.deepEqual(result.value, { name: "Robin", hobby: "programming" });
+      assert.deepEqual(result.value, { name: "Robin", pets: 0 });
     });
 
     it("#person expands to tag: 'person'", () => {

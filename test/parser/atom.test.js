@@ -83,6 +83,15 @@ describe("Atom parsing", () => {
       assert.equal(result.rest, "");
     });
 
+    it("Works for 0", () => {
+      const input = "0";
+      const result = parse.integer.run(input);
+
+      assert.ok(result.success);
+      assert.strictEqual(result.value, 0);
+      assert.equal(result.rest, "");
+    });
+
     it("cannot begin with a letter", () => {
       assert.equal(parse.integer.run("b123").success, false);
     });
