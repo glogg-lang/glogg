@@ -72,4 +72,31 @@ describe("Atom parsing", () => {
       assert.equal(result.rest, "");
     });
   });
+
+  describe("integer", () => {
+    it("Starts and contains only numbers", () => {
+      const input = "123";
+      const result = parse.integer.run(input);
+
+      assert.ok(result.success);
+      assert.equal(result.value, 123);
+      assert.equal(result.rest, "");
+    });
+
+    it("cannot begin with a letter", () => {
+      assert.equal(parse.integer.run("b123").success, false);
+    });
+
+    it("cannot contain letters", () => {
+      assert.equal(parse.integer.run("12o3").success, false);
+    });
+
+    it("cannot contain spaces", () => {
+      const result = parse.integer.run("12 13");
+
+      assert.ok(result.success);
+      assert.equal(result.value, 12);
+      assert.equal(result.rest, " 13");
+    });
+  });
 });

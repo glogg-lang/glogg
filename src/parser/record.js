@@ -15,7 +15,7 @@ const keyValuePair = parse
     atom.whitespace,
     parse.char(":"),
     atom.whitespace,
-    atom.string.keep(),
+    parse.oneOf(atom.string, atom.integer).keep(),
     atom.whitespace,
   )
   .mapKeeps((val) => val);
@@ -26,6 +26,7 @@ export const nonEmptyRecord = parse
     atom.whitespace,
     parse.nOrMore(1, parse.oneOf(tag, keyValuePair)).keep(),
     parse.char("]"),
+    atom.whitespace,
   )
   .mapKeeps(([val]) => {
     const result = {};
