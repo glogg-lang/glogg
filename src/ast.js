@@ -97,9 +97,15 @@ export async function load(store) {
         for (const constraint of constraints) {
           if (constraint.label === "tag") {
             result += ` #${constraint.value}`;
-          } else {
-            result += ` ${constraint.label}: "${constraint.value}"`;
+            continue;
           }
+
+          let valueFormated = constraint.value;
+          if (constraint.type === "string") {
+            valueFormated = `"${constraint.value}"`;
+          }
+
+          result += ` ${constraint.label}: ${valueFormated}`;
         }
 
         result += " ]";
