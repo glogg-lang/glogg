@@ -7,12 +7,17 @@ describe("AST", () => {
     it("Parsed AST can be stored into a database", async () => {
       const store = await db.setup(":memory:");
 
-      await ast.save(store, 'commit: [#person name: "Robin"]');
+      await ast.save(
+        store,
+        'commit: [#person name: "Robin" pets: 2 role: role]',
+      );
 
       const extracted = await ast.load(store);
 
       assert.equal(
-        ["commit:", '  [ #person name: "Robin" ]'].join("\n"),
+        ["commit:", '  [ #person name: "Robin" pets: 2 role: role ]'].join(
+          "\n",
+        ),
         extracted,
       );
     });

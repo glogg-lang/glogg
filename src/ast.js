@@ -1,4 +1,5 @@
 import * as parser from "#src/parser/query";
+import * as atom from "#src/parser/atom";
 import * as db from "#src/db";
 
 export async function save(store, code) {
@@ -39,6 +40,14 @@ export async function save(store, code) {
       );
 
       for (const [label, value] of Object.entries(commitClause)) {
+        let serializedValue = value;
+        let valueType = typeof value;
+
+        if (value instanceof atom.Var) {
+          serializedValue = value.name;
+          valueType = "variable";
+        }
+
         await db.get(
           [
             "INSERT INTO 'constraint' (clause_id, label, value, type, operation)",
@@ -47,8 +56,8 @@ export async function save(store, code) {
           {
             $clauseId: clauseId,
             $label: label,
-            $value: value,
-            $type: typeof value,
+            $value: serializedValue,
+            $type: valueType,
             $operation: "SET",
           },
           store,

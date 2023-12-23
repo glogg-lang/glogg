@@ -108,4 +108,31 @@ describe("Atom parsing", () => {
       assert.equal(result.rest, " 13");
     });
   });
+
+  describe("variable", () => {
+    it("starts with a lower-case letter, and can contain letters and digits", () => {
+      const input = "a-var-3";
+      const result = parse.variable.run(input);
+
+      assert.ok(result.success);
+      assert.deepStrictEqual(result.value, new parse.Var("a-var-3"));
+      assert.strictEqual(result.rest, "");
+    });
+
+    it("cannot begin with a digit", () => {
+      assert.equal(parse.variable.run("1-var").success, false);
+    });
+
+    it("cannot begin with capital letter", () => {
+      assert.equal(parse.variable.run("Var").success, false);
+    });
+
+    it("cannot contain spaces", () => {
+      const result = parse.variable.run("var1 var2");
+
+      assert.ok(result.success);
+      assert.deepStrictEqual(result.value, new parse.Var("var1"));
+      assert.strictEqual(result.rest, " var2");
+    });
+  });
 });

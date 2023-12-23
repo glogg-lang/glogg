@@ -15,7 +15,7 @@ const keyValuePair = parse
     atom.whitespace,
     parse.char(":"),
     atom.whitespace,
-    parse.oneOf(atom.string, atom.integer).keep(),
+    parse.oneOf(atom.string, atom.integer, atom.variable).keep(),
     atom.whitespace,
   )
   .mapKeeps((val) => val);

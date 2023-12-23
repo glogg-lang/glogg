@@ -1,4 +1,5 @@
 import * as parse from "#src/parser/record";
+import * as atom from "#src/parser/atom";
 import * as assert from "node:assert";
 
 describe("Record parsing", () => {
@@ -31,6 +32,16 @@ describe("Record parsing", () => {
 
       assert.ok(result.success);
       assert.deepEqual(result.value, { name: "Robin", pets: 0 });
+    });
+
+    it("can contain variables", () => {
+      const result = parse.nonEmptyRecord.run('[name: "Robin" pets: pets ]');
+
+      assert.ok(result.success);
+      assert.deepStrictEqual(result.value, {
+        name: "Robin",
+        pets: new atom.Var("pets"),
+      });
     });
 
     it("#person expands to tag: 'person'", () => {

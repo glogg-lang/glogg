@@ -1,5 +1,11 @@
 import * as parse from "./primitive.js";
 
+export class Var {
+  constructor(name) {
+    this.name = name;
+  }
+}
+
 export const whitespace = parse.nOrMore(0, parse.whitespace);
 
 const termination = parse.oneOf(
@@ -32,3 +38,5 @@ export const string = parse
 export const integer = parse
   .sequence(parse.nOrMore(1, parse.digit).keep(), termination.backtrack())
   .mapKeeps(([digits]) => parseInt(digits.join("")));
+
+export const variable = name.map((name) => new Var(name));
