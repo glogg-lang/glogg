@@ -76,3 +76,17 @@ export function all(str, params, db) {
     });
   });
 }
+
+export async function tx(store, action) {
+  await run("BEGIN", {}, store);
+
+  try {
+    await action();
+
+    await run("COMMIT", {}, store);
+  } catch (e) {
+    console.error(e);
+
+    await run("ROLLBACK", {}, store);
+  }
+}

@@ -8,68 +8,93 @@ export async function save(store, code) {
   }
 
   const parsed = parser.query.run(code);
+  const query = parsed.value;
 
-  await db.run("BEGIN", {}, store);
+  if (query.search.length + query.bind.length + query.commit.length === 0) {
+    return;
+  }
 
-  try {
+  await db.tx(store, async () => {
     const { id: queryId } = await db.get(
       "INSERT INTO query DEFAULT VALUES RETURNING *",
       {},
       store,
     );
 
-    const { id: commitId } = await db.get(
-      "INSERT INTO 'commit' (query_id) VALUES ($queryId) RETURNING *",
-      { $queryId: queryId },
-      store,
-    );
-
-    for (const [idx, commitClause] of parsed.value.commit.entries()) {
-      const { id: clauseId } = await db.get(
-        [
-          "INSERT INTO clause (search_id, bind_id, commit_id, alias, 'order')",
-          "VALUES (NULL, NULL, $commitId, $alias, $order)",
-          "RETURNING *",
-        ].join(" "),
-        {
-          $commitId: commitId,
-          $alias: null,
-          $order: idx,
-        },
+    if (query.search.length > 0) {
+      const { id: searchId } = await db.get(
+        "INSERT INTO search (query_id) VALUES ($queryId) RETURNING *",
+        { $queryId: queryId },
         store,
       );
 
-      for (const [label, value] of Object.entries(commitClause)) {
-        let serializedValue = value;
-        let valueType = typeof value;
-
-        if (value instanceof atom.Var) {
-          serializedValue = value.name;
-          valueType = "variable";
-        }
-
-        await db.get(
-          [
-            "INSERT INTO 'constraint' (clause_id, label, value, type, operation)",
-            "VALUES ($clauseId, $label, $value, $type, $operation)",
-          ].join(""),
-          {
-            $clauseId: clauseId,
-            $label: label,
-            $value: serializedValue,
-            $type: valueType,
-            $operation: "SET",
-          },
-          store,
-        );
-      }
+      await saveRecords(store, { searchId: searchId }, query.search.entries());
     }
 
-    await db.run("COMMIT", {}, store);
-  } catch (e) {
-    console.error(e);
+    if (query.bind.length > 0) {
+      const { id: bindId } = await db.get(
+        "INSERT INTO bind (query_id) VALUES ($queryId) RETURNING *",
+        { $queryId: queryId },
+        store,
+      );
 
-    await db.run("ROLLBACK", {}, store);
+      await saveRecords(store, { bindId: bindId }, query.bind.entries());
+    }
+
+    if (query.commit.length > 0) {
+      const { id: commitId } = await db.get(
+        "INSERT INTO 'commit' (query_id) VALUES ($queryId) RETURNING *",
+        { $queryId: queryId },
+        store,
+      );
+
+      await saveRecords(store, { commitId: commitId }, query.commit.entries());
+    }
+  });
+}
+
+async function saveRecords(store, { searchId, bindId, commitId }, entries) {
+  for (const [idx, clause] of entries) {
+    const { id: clauseId } = await db.get(
+      [
+        "INSERT INTO clause (search_id, bind_id, commit_id, alias, 'order')",
+        "VALUES ($searchId, $bindId, $commitId, $alias, $order)",
+        "RETURNING *",
+      ].join(" "),
+      {
+        $searchId: searchId,
+        $bindId: bindId,
+        $commitId: commitId,
+        $alias: null,
+        $order: idx,
+      },
+      store,
+    );
+
+    for (const [label, value] of Object.entries(clause)) {
+      let serializedValue = value;
+      let valueType = typeof value;
+
+      if (value instanceof atom.Var) {
+        serializedValue = value.name;
+        valueType = "variable";
+      }
+
+      await db.get(
+        [
+          "INSERT INTO 'constraint' (clause_id, label, value, type, operation)",
+          "VALUES ($clauseId, $label, $value, $type, $operation)",
+        ].join(""),
+        {
+          $clauseId: clauseId,
+          $label: label,
+          $value: serializedValue,
+          $type: valueType,
+          $operation: "SET",
+        },
+        store,
+      );
+    }
   }
 }
 
@@ -79,6 +104,48 @@ export async function load(store) {
   const queries = await db.all("SELECT * FROM query", {}, store);
 
   for (const { id: queryId } of queries) {
+    const searches = await db.all(
+      "SELECT * FROM search WHERE query_id = $queryId",
+      { $queryId: queryId },
+      store,
+    );
+
+    for (const search of searches) {
+      result += "search:";
+
+      const lines = await db.all(
+        "SELECT * FROM clause WHERE search_id = $searchId ORDER BY 'order' ASC",
+        { $searchId: search.id },
+        store,
+      );
+
+      const formattedLines = await formatLines(store, lines);
+
+      result += formattedLines;
+      result += "\n\n";
+    }
+
+    const binds = await db.all(
+      "SELECT * FROM bind WHERE query_id = $queryId",
+      { $queryId: queryId },
+      store,
+    );
+
+    for (const bind of binds) {
+      result += "bind:";
+
+      const lines = await db.all(
+        "SELECT * FROM clause WHERE bind_id = $bindId ORDER BY 'order' ASC",
+        { $bindId: bind.id },
+        store,
+      );
+
+      const formattedLines = await formatLines(store, lines);
+
+      result += formattedLines;
+      result += "\n\n";
+    }
+
     const commits = await db.all(
       "SELECT * FROM 'commit' WHERE query_id = $queryId",
       { $queryId: queryId },
@@ -94,32 +161,45 @@ export async function load(store) {
         store,
       );
 
-      for (const line of lines) {
-        result += "\n  [";
+      const formattedLines = await formatLines(store, lines);
 
-        const constraints = await db.all(
-          "SELECT * FROM 'constraint' WHERE clause_id = $clauseId",
-          { $clauseId: line.id },
-          store,
-        );
-
-        for (const constraint of constraints) {
-          if (constraint.label === "tag") {
-            result += ` #${constraint.value}`;
-            continue;
-          }
-
-          let valueFormated = constraint.value;
-          if (constraint.type === "string") {
-            valueFormated = `"${constraint.value}"`;
-          }
-
-          result += ` ${constraint.label}: ${valueFormated}`;
-        }
-
-        result += " ]";
-      }
+      result += formattedLines;
+      result += "\n\n";
     }
+
+    result += "\n";
+  }
+
+  return result;
+}
+
+async function formatLines(store, lines) {
+  let result = "";
+
+  for (const line of lines) {
+    result += "\n  [";
+
+    const constraints = await db.all(
+      "SELECT * FROM 'constraint' WHERE clause_id = $clauseId",
+      { $clauseId: line.id },
+      store,
+    );
+
+    for (const constraint of constraints) {
+      if (constraint.label === "tag") {
+        result += ` #${constraint.value}`;
+        continue;
+      }
+
+      let valueFormated = constraint.value;
+      if (constraint.type === "string") {
+        valueFormated = `"${constraint.value}"`;
+      }
+
+      result += ` ${constraint.label}: ${valueFormated}`;
+    }
+
+    result += " ]";
   }
 
   return result;
