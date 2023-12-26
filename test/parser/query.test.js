@@ -13,11 +13,12 @@ describe("Query parsing", () => {
 
       const query = result.value;
 
-      assert.deepEqual(query.search, []);
-      assert.deepEqual(query.bind, []);
-      assert.deepEqual(query.commit, [
-        { tag: "person", name: "Robin", role: "developer" },
-      ]);
+      assert.deepEqual(query.search.steps, []);
+      assert.deepEqual(query.bind.steps, []);
+      assert.deepEqual(query.commit, {
+        context: "default",
+        steps: [{ tag: "person", name: "Robin", role: "developer" }],
+      });
     });
 
     it("Slightly more complicated fact", () => {
@@ -33,12 +34,15 @@ describe("Query parsing", () => {
 
       const query = result.value;
 
-      assert.deepEqual(query.search, []);
-      assert.deepEqual(query.bind, []);
-      assert.deepEqual(query.commit, [
-        { tag: "person", name: "Robin", role: "developer" },
-        { tag: "person", name: "Nibor", role: "team lead", cats: 3 },
-      ]);
+      assert.deepEqual(query.search.steps, []);
+      assert.deepEqual(query.bind.steps, []);
+      assert.deepEqual(query.commit, {
+        context: "default",
+        steps: [
+          { tag: "person", name: "Robin", role: "developer" },
+          { tag: "person", name: "Nibor", role: "team lead", cats: 3 },
+        ],
+      });
     });
 
     it("Commits can be prefixed with a search block", () => {
@@ -56,13 +60,21 @@ describe("Query parsing", () => {
 
       const query = result.value;
 
-      assert.deepStrictEqual(query.search, [
-        { tag: "person", name: new atom.Var("name"), pets: new atom.Var("n") },
-      ]);
-      assert.deepStrictEqual(query.bind, []);
-      assert.deepStrictEqual(query.commit, [
-        { tag: "cat-person", name: new atom.Var("name") },
-      ]);
+      assert.deepStrictEqual(query.search, {
+        context: "default",
+        steps: [
+          {
+            tag: "person",
+            name: new atom.Var("name"),
+            pets: new atom.Var("n"),
+          },
+        ],
+      });
+      assert.deepStrictEqual(query.bind.steps, []);
+      assert.deepStrictEqual(query.commit, {
+        context: "default",
+        steps: [{ tag: "cat-person", name: new atom.Var("name") }],
+      });
     });
   });
 
@@ -82,13 +94,21 @@ describe("Query parsing", () => {
 
       const query = result.value;
 
-      assert.deepStrictEqual(query.search, [
-        { tag: "person", name: new atom.Var("name"), pets: new atom.Var("n") },
-      ]);
-      assert.deepStrictEqual(query.bind, [
-        { tag: "cat-person", name: new atom.Var("name") },
-      ]);
-      assert.deepStrictEqual(query.commit, []);
+      assert.deepStrictEqual(query.search, {
+        context: "default",
+        steps: [
+          {
+            tag: "person",
+            name: new atom.Var("name"),
+            pets: new atom.Var("n"),
+          },
+        ],
+      });
+      assert.deepStrictEqual(query.bind, {
+        context: "default",
+        steps: [{ tag: "cat-person", name: new atom.Var("name") }],
+      });
+      assert.deepStrictEqual(query.commit.steps, []);
     });
 
     it("Bind without search will fail (it would imply commit)", () => {

@@ -10,9 +10,12 @@ const unconditionalCommit = parse
     parse.nOrMore(1, rec.nonEmptyRecord).keep(),
   )
   .mapKeeps(([records]) => ({
-    search: [],
-    bind: [],
-    commit: records,
+    search: emptyBlock(),
+    bind: emptyBlock(),
+    commit: {
+      context: "default",
+      steps: records,
+    },
   }));
 
 const unconditionalBind = parse
@@ -23,9 +26,12 @@ const unconditionalBind = parse
     parse.nOrMore(1, rec.nonEmptyRecord).keep(),
   )
   .mapKeeps(([records]) => ({
-    search: [],
-    bind: records,
-    commit: [],
+    search: emptyBlock(),
+    bind: {
+      context: "default",
+      steps: records,
+    },
+    commit: emptyBlock(),
   }));
 
 const conditionalQuery = parse
@@ -37,9 +43,19 @@ const conditionalQuery = parse
     parse.oneOf(unconditionalCommit, unconditionalBind).keep(),
   )
   .mapKeeps(([searchRecords, modifierRecords]) => ({
-    search: searchRecords,
+    search: {
+      context: "default",
+      steps: searchRecords,
+    },
     bind: modifierRecords.bind,
     commit: modifierRecords.commit,
   }));
 
 export const query = parse.oneOf(unconditionalCommit, conditionalQuery);
+
+function emptyBlock() {
+  return {
+    context: "default",
+    steps: [],
+  };
+}

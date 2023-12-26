@@ -8,9 +8,9 @@ export async function save(store, code) {
   }
 
   const parsed = parser.query.run(code);
-  const query = parsed.value;
+  const { search, bind, commit } = parsed.value;
 
-  if (query.search.length + query.bind.length + query.commit.length === 0) {
+  if (search.steps.length + bind.steps.length + commit.steps.length === 0) {
     return;
   }
 
@@ -21,34 +21,34 @@ export async function save(store, code) {
       store,
     );
 
-    if (query.search.length > 0) {
+    if (search.steps.length > 0) {
       const { id: searchId } = await db.get(
         "INSERT INTO search (query_id) VALUES ($queryId) RETURNING *",
         { $queryId: queryId },
         store,
       );
 
-      await saveRecords(store, { searchId: searchId }, query.search.entries());
+      await saveRecords(store, { searchId: searchId }, search.steps.entries());
     }
 
-    if (query.bind.length > 0) {
+    if (bind.steps.length > 0) {
       const { id: bindId } = await db.get(
         "INSERT INTO bind (query_id) VALUES ($queryId) RETURNING *",
         { $queryId: queryId },
         store,
       );
 
-      await saveRecords(store, { bindId: bindId }, query.bind.entries());
+      await saveRecords(store, { bindId: bindId }, bind.steps.entries());
     }
 
-    if (query.commit.length > 0) {
+    if (commit.steps.length > 0) {
       const { id: commitId } = await db.get(
         "INSERT INTO 'commit' (query_id) VALUES ($queryId) RETURNING *",
         { $queryId: queryId },
         store,
       );
 
-      await saveRecords(store, { commitId: commitId }, query.commit.entries());
+      await saveRecords(store, { commitId: commitId }, commit.steps.entries());
     }
   });
 }
