@@ -41,6 +41,28 @@ describe("AST - Save and Load", () => {
 
     assertNoWhitespace(input, extracted);
   });
+
+  it("Commit with contexts", async () => {
+    const input =
+      "search @one: [#person name: name pets: p ] commit @two: [#pet-owner name: name]";
+
+    await ast.save(store, input);
+
+    const extracted = await ast.load(store);
+
+    assertNoWhitespace(input, extracted);
+  });
+
+  it("Bind with contexts", async () => {
+    const input =
+      "search @one: [#person name: name pets: p ] bind @two: [#pet-owner name: name]";
+
+    await ast.save(store, input);
+
+    const extracted = await ast.load(store);
+
+    assertNoWhitespace(input, extracted);
+  });
 });
 
 function assertNoWhitespace(expected, actual) {

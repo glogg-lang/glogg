@@ -16,7 +16,7 @@ describe("Query parsing", () => {
       assert.deepEqual(query.search.steps, []);
       assert.deepEqual(query.bind.steps, []);
       assert.deepEqual(query.commit, {
-        context: "default",
+        context: null,
         steps: [{ tag: "person", name: "Robin", role: "developer" }],
       });
     });
@@ -57,7 +57,7 @@ describe("Query parsing", () => {
       assert.deepEqual(query.search.steps, []);
       assert.deepEqual(query.bind.steps, []);
       assert.deepEqual(query.commit, {
-        context: "default",
+        context: null,
         steps: [
           { tag: "person", name: "Robin", role: "developer" },
           { tag: "person", name: "Nibor", role: "team lead", cats: 3 },
@@ -81,7 +81,7 @@ describe("Query parsing", () => {
       const query = result.value;
 
       assert.deepStrictEqual(query.search, {
-        context: "default",
+        context: null,
         steps: [
           {
             tag: "person",
@@ -92,7 +92,7 @@ describe("Query parsing", () => {
       });
       assert.deepStrictEqual(query.bind.steps, []);
       assert.deepStrictEqual(query.commit, {
-        context: "default",
+        context: null,
         steps: [{ tag: "cat-person", name: new atom.Var("name") }],
       });
     });
@@ -147,7 +147,7 @@ describe("Query parsing", () => {
       const query = result.value;
 
       assert.deepStrictEqual(query.search, {
-        context: "default",
+        context: null,
         steps: [
           {
             tag: "person",
@@ -157,7 +157,7 @@ describe("Query parsing", () => {
         ],
       });
       assert.deepStrictEqual(query.bind, {
-        context: "default",
+        context: null,
         steps: [{ tag: "cat-person", name: new atom.Var("name") }],
       });
       assert.deepStrictEqual(query.commit.steps, []);

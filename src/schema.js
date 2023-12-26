@@ -5,15 +5,18 @@ export const migrations = [
     ) STRICT`,
     `CREATE TABLE search (
       id INTEGER PRIMARY KEY,
-      query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE
+      query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE,
+      context TEXT
     ) STRICT`,
     `CREATE TABLE bind (
       id INTEGER PRIMARY KEY,
-      query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE
+      query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE,
+      context TEXT
     ) STRICT`,
     `CREATE TABLE 'commit' (
       id INTEGER PRIMARY KEY,
-      query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE
+      query_id INTEGER NOT NULL REFERENCES query(id) ON DELETE CASCADE,
+      context TEXT
     ) STRICT`,
     `CREATE TABLE clause (
       id INTEGER PRIMARY KEY,

@@ -29,8 +29,8 @@ export async function save(store, code) {
 
     if (search.steps.length > 0) {
       const { id: searchId } = await db.get(
-        "INSERT INTO search (query_id) VALUES ($queryId) RETURNING *",
-        { $queryId: queryId },
+        "INSERT INTO search (query_id, context) VALUES ($queryId, $context) RETURNING *",
+        { $queryId: queryId, $context: search.context },
         store,
       );
 
@@ -39,8 +39,8 @@ export async function save(store, code) {
 
     if (bind.steps.length > 0) {
       const { id: bindId } = await db.get(
-        "INSERT INTO bind (query_id) VALUES ($queryId) RETURNING *",
-        { $queryId: queryId },
+        "INSERT INTO bind (query_id, context) VALUES ($queryId, $context) RETURNING *",
+        { $queryId: queryId, $context: bind.context },
         store,
       );
 
@@ -49,8 +49,8 @@ export async function save(store, code) {
 
     if (commit.steps.length > 0) {
       const { id: commitId } = await db.get(
-        "INSERT INTO 'commit' (query_id) VALUES ($queryId) RETURNING *",
-        { $queryId: queryId },
+        "INSERT INTO 'commit' (query_id, context) VALUES ($queryId, $context) RETURNING *",
+        { $queryId: queryId, $context: commit.context },
         store,
       );
 
@@ -117,7 +117,11 @@ export async function load(store) {
     );
 
     for (const search of searches) {
-      result += "search:";
+      if (search.context) {
+        result += `search @${search.context}:`;
+      } else {
+        result += "search:";
+      }
 
       const lines = await db.all(
         "SELECT * FROM clause WHERE search_id = $searchId ORDER BY 'order' ASC",
@@ -138,7 +142,11 @@ export async function load(store) {
     );
 
     for (const bind of binds) {
-      result += "bind:";
+      if (bind.context) {
+        result += `bind @${bind.context}:`;
+      } else {
+        result += "bind:";
+      }
 
       const lines = await db.all(
         "SELECT * FROM clause WHERE bind_id = $bindId ORDER BY 'order' ASC",
@@ -159,7 +167,11 @@ export async function load(store) {
     );
 
     for (const commit of commits) {
-      result += "commit:";
+      if (commit.context) {
+        result += `commit @${commit.context}:`;
+      } else {
+        result += "commit:";
+      }
 
       const lines = await db.all(
         "SELECT * FROM clause WHERE commit_id = $commitId ORDER BY 'order' ASC",
