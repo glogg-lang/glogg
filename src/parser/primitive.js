@@ -250,6 +250,22 @@ export function sequence(...parsers) {
   });
 }
 
+export function optional(parser) {
+  return new Parser((str) => {
+    const result = parser.run(str);
+
+    if (result.success) {
+      return result;
+    }
+
+    return {
+      success: true,
+      value: null,
+      rest: str,
+    };
+  });
+}
+
 export function nOrMore(n, parser) {
   return new Parser((str) => {
     let iterations = 0;

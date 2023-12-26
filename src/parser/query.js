@@ -2,18 +2,26 @@ import * as parse from "./primitive.js";
 import * as atom from "./atom.js";
 import * as rec from "./record.js";
 
+const context = parse
+  .sequence(parse.char("@"), atom.name.keep())
+  .mapKeeps(([name]) => name);
+
 const unconditionalCommit = parse
   .sequence(
     atom.whitespace,
-    parse.word("commit:"),
+    parse.word("commit"),
+    atom.whitespace,
+    parse.optional(context).keep(),
+    atom.whitespace,
+    parse.char(":"),
     atom.whitespace,
     parse.nOrMore(1, rec.nonEmptyRecord).keep(),
   )
-  .mapKeeps(([records]) => ({
+  .mapKeeps(([context, records]) => ({
     search: emptyBlock(),
     bind: emptyBlock(),
     commit: {
-      context: "default",
+      context: context || "default",
       steps: records,
     },
   }));
@@ -21,14 +29,18 @@ const unconditionalCommit = parse
 const unconditionalBind = parse
   .sequence(
     atom.whitespace,
-    parse.word("bind:"),
+    parse.word("bind"),
+    atom.whitespace,
+    parse.optional(context).keep(),
+    atom.whitespace,
+    parse.char(":"),
     atom.whitespace,
     parse.nOrMore(1, rec.nonEmptyRecord).keep(),
   )
-  .mapKeeps(([records]) => ({
+  .mapKeeps(([context, records]) => ({
     search: emptyBlock(),
     bind: {
-      context: "default",
+      context: context || "default",
       steps: records,
     },
     commit: emptyBlock(),
@@ -37,14 +49,18 @@ const unconditionalBind = parse
 const conditionalQuery = parse
   .sequence(
     atom.whitespace,
-    parse.word("search:"),
+    parse.word("search"),
+    atom.whitespace,
+    parse.optional(context).keep(),
+    atom.whitespace,
+    parse.char(":"),
     atom.whitespace,
     parse.nOrMore(1, rec.nonEmptyRecord).keep(),
     parse.oneOf(unconditionalCommit, unconditionalBind).keep(),
   )
-  .mapKeeps(([searchRecords, modifierRecords]) => ({
+  .mapKeeps(([searchContext, searchRecords, modifierRecords]) => ({
     search: {
-      context: "default",
+      context: searchContext || "default",
       steps: searchRecords,
     },
     bind: modifierRecords.bind,

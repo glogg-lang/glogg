@@ -217,6 +217,24 @@ describe("Parser primitives", () => {
     });
   });
 
+  describe("optional", () => {
+    it("matches a parser", () => {
+      const result = parse.optional(parse.digit).run("12");
+
+      assert.ok(result.success);
+      assert.equal(result.value, "1");
+      assert.equal(result.rest, "2");
+    });
+
+    it("if it cannot parse with the given parser, it returns null", () => {
+      const result = parse.optional(parse.digit).run("a2");
+
+      assert.ok(result.success);
+      assert.equal(result.value, null);
+      assert.equal(result.rest, "a2");
+    });
+  });
+
   describe("nOrMore", () => {
     it("matches a parser _at least_ N times", () => {
       const result = parse.nOrMore(3, parse.digit).run("123.456");

@@ -8,6 +8,12 @@ export async function save(store, code) {
   }
 
   const parsed = parser.query.run(code);
+
+  if (!parsed.success) {
+    console.error("ERROR: Invalid code");
+    return;
+  }
+
   const { search, bind, commit } = parsed.value;
 
   if (search.steps.length + bind.steps.length + commit.steps.length === 0) {
