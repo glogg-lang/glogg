@@ -5,7 +5,7 @@ import path from "node:path";
 import * as fs from "node:fs";
 import * as childProcess from "node:child_process";
 import * as glogDb from "#src/db";
-import * as ast from "#src/ast";
+import * as persistence from "#src/persistence";
 import * as codegen from "#src/codegen";
 
 const cmd = process.argv[2];
@@ -43,13 +43,13 @@ async function edit() {
   try {
     const draftPath = path.join(process.cwd(), "draft.glogg");
 
-    const existingCode = await ast.load(store);
+    const existingCode = await persistence.load(store);
     fs.writeFileSync(draftPath, existingCode, { encoding: "utf-8" });
 
     childProcess.spawnSync(editor, [draftPath], { stdio: "inherit" });
 
     const writtenCode = fs.readFileSync(draftPath, { encoding: "utf-8" });
-    await ast.save(store, writtenCode);
+    await persistence.save(store, writtenCode);
 
     fs.rmSync(draftPath);
   } catch (e) {
@@ -96,8 +96,8 @@ async function diff() {
   const currentDb = await glogDb.setup(currentPath);
   const targetDb = await glogDb.setup(targetPath);
 
-  const currentAst = await ast.load(currentDb);
-  const targetAst = await ast.load(targetDb);
+  const currentAst = await persistence.load(currentDb);
+  const targetAst = await persistence.load(targetDb);
 
   console.log(currentAst);
   console.log(targetAst);
