@@ -1,7 +1,16 @@
 import * as db from "#src/db";
+import * as fs from "node:fs";
+
+const runtimePath = new URL(import.meta.resolve("#src/runtime")).pathname;
 
 export async function make(store) {
-  let result = "const facts = [\n";
+  const runtimePrelude = fs
+    .readFileSync(runtimePath, { encoding: "utf-8" })
+    .replace("export ", "");
+
+  let result = runtimePrelude + "\n\n";
+
+  result += "const facts = [\n";
 
   const unconditionalCommits = await db.all(
     [
