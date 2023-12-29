@@ -2,8 +2,8 @@
  */
 
 export class Db {
-  constructor(facts) {
-    this.facts = facts || [];
+  constructor() {
+    this.facts = [];
     this.listeners = [];
   }
 
