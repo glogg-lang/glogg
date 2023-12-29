@@ -12,7 +12,8 @@ describe("Runtime", () => {
 
       const db = new Db();
 
-      db.commit(factsToStore);
+      db.commit(factsToStore.slice(0, -1));
+      db.commit(factsToStore.slice(2));
 
       assert.deepStrictEqual(factsToStore, db.facts);
     });
