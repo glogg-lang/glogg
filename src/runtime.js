@@ -19,7 +19,7 @@ export class Db {
 
   _triggerChanges() {
     for (const listener of this.listeners) {
-      listener.apply(this);
+      listener.call(this);
     }
   }
 }

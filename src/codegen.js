@@ -12,8 +12,6 @@ export async function make(store) {
 
   result += "const db = new Db();\n\n";
 
-  result += "db.commit([\n";
-
   const unconditionalCommits = await db.all(
     [
       "SELECT * FROM 'commit'",
@@ -24,7 +22,111 @@ export async function make(store) {
     store,
   );
 
-  for (const commit of unconditionalCommits) {
+  const conditionalQueries = await db.all(
+    ["SELECT id FROM query", "WHERE id NOT IN ($unconditionalQueryIds)"].join(
+      "\n",
+    ),
+    {
+      $unconditionalQueryIds: unconditionalCommits
+        .map((it) => it.query_id)
+        .join(", "),
+    },
+    store,
+  );
+
+  const conditionals = await compileConditionalQueries(
+    conditionalQueries,
+    store,
+  );
+
+  result += conditionals + "\n";
+
+  const commitStatement = await compileCommits(unconditionalCommits, store);
+
+  result += commitStatement;
+
+  return result;
+}
+
+async function compileConditionalQueries(queries, store) {
+  let result = "";
+
+  for (const query of queries) {
+    result += "db.onChange(function() {\n";
+
+    const search = await db.get(
+      "SELECT * FROM search WHERE query_id = $queryId",
+      { $queryId: query.id },
+      store,
+    );
+
+    const clauses = await db.all(
+      "SELECT * FROM clause WHERE search_id = $searchId ORDER BY 'order' ASC",
+      { $searchId: search.id },
+      store,
+    );
+
+    for (const clause of clauses) {
+      result += "for (const fact of this.facts) {\n";
+
+      const constraints = await db.all(
+        "SELECT * FROM 'constraint' WHERE clause_id = $clauseId",
+        { $clauseId: clause.id },
+        store,
+      );
+
+      result += "if (";
+
+      for (const [idx, cons] of constraints.entries()) {
+        result += `fact.${cons.label}`;
+
+        switch (cons.type) {
+          case "string":
+            result += ` === "${cons.value}"`;
+            break;
+          case "number":
+            result += ` === ${cons.value}`;
+            break;
+        }
+
+        if (idx !== constraints.length - 1) {
+          result += " && ";
+        }
+      }
+
+      result += ") {\n";
+
+      const vars = constraints.filter((con) => con.type === "variable");
+
+      for (const cons of vars) {
+        result += `const ${cons.label} = fact.${cons.label};\n`;
+      }
+
+      const commit = await db.get(
+        "SELECT * FROM 'commit' WHERE query_id = $queryId",
+        { $queryId: query.id },
+        store,
+      );
+
+      const commitExpression = await compileCommits([commit], store);
+
+      result += commitExpression;
+
+      result += "}\n";
+
+      result += "}\n";
+    }
+
+    result += "});\n";
+  }
+
+  return result;
+}
+
+async function compileCommits(commits, store) {
+  let result = "db.commit([\n";
+
+  for (const commit of commits) {
     const clauses = await db.all(
       "SELECT * FROM clause WHERE commit_id = $commitId",
       { $commitId: commit.id },
@@ -38,7 +140,7 @@ export async function make(store) {
         store,
       );
 
-      const record = recordFromConstraints(clause.context, constraints);
+      const record = recordFromConstraints(commit.context, constraints);
 
       result += "  " + record + ",\n";
     }
@@ -50,13 +152,27 @@ export async function make(store) {
 }
 
 function recordFromConstraints(context, constraints) {
-  const result = {};
+  let result = "{";
 
   for (const constraint of constraints) {
     const label = context ? `${context}/${constraint.label}` : constraint.label;
 
-    result[label] = constraint.value;
+    let value = null;
+    switch (constraint.type) {
+      case "string":
+        value = `"${constraint.value}"`;
+        break;
+      case "number":
+        value = constraint.value.toString();
+        break;
+      case "variable":
+        value = constraint.value;
+    }
+
+    result += `"${label}": ${value}, `;
   }
 
-  return JSON.stringify(result);
+  result += "}";
+
+  return result;
 }
