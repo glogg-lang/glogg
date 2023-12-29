@@ -10,7 +10,7 @@ export async function make(store) {
 
   let result = runtimePrelude + "\n\n";
 
-  result += "const db = new Db();\n\n";
+  result += "const db = init();\n\n";
 
   const unconditionalCommits = await db.all(
     [
