@@ -8,7 +8,21 @@ export class Db {
   }
 
   commit(facts) {
-    this.facts = this.facts.concat(facts);
+    const factsToCommit = facts.filter((newFact) => {
+      for (const oldFact of this.facts) {
+        if (deepEqual(oldFact, newFact)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    if (factsToCommit.length === 0) {
+      return;
+    }
+
+    this.facts = this.facts.concat(factsToCommit);
 
     this._triggerChanges();
   }
@@ -22,4 +36,32 @@ export class Db {
       listener.call(this);
     }
   }
+}
+
+function deepEqual(left, right) {
+  if (left === right) {
+    return true;
+  }
+
+  if (typeof left !== "object" || typeof right !== "object") {
+    return false;
+  }
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+
+  leftKeys.sort();
+  rightKeys.sort();
+
+  for (const key of leftKeys) {
+    if (!deepEqual(left[key], right[key])) {
+      return false;
+    }
+  }
+
+  return true;
 }

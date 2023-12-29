@@ -34,4 +34,28 @@ describe("Runtime", () => {
       assert.ok(triggered);
     });
   });
+
+  describe("Values are de-duplicated on commits", () => {
+    const db = new Db();
+
+    db.commit([{ tag: "test" }]);
+    db.commit([{ tag: "test" }]);
+
+    assert.deepStrictEqual(db.facts, [{ tag: "test" }]);
+  });
+
+  describe("Listeners are only triggered when the database _actually_ changes", () => {
+    const db = new Db();
+
+    let triggered = 0;
+
+    db.onChange(() => {
+      triggered += 1;
+    });
+
+    db.commit([{ tag: "test" }]);
+    db.commit([{ tag: "test" }]);
+
+    assert.strictEqual(1, triggered);
+  });
 });
