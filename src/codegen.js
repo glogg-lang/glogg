@@ -41,7 +41,12 @@ export async function make(store) {
 
   result += conditionals + "\n";
 
-  const commitStatement = await compileCommits(unconditionalCommits, store);
+  const commitStatement = await compileCommits(
+    0,
+    "db",
+    unconditionalCommits,
+    store,
+  );
 
   result += commitStatement;
 
@@ -52,7 +57,7 @@ async function compileConditionalQueries(queries, store) {
   let result = "";
 
   for (const query of queries) {
-    result += "db.onChange(function() {\n";
+    result += line(0, "db.onChange(function() {");
 
     const search = await db.get(
       "SELECT * FROM search WHERE query_id = $queryId",
@@ -66,8 +71,9 @@ async function compileConditionalQueries(queries, store) {
       store,
     );
 
-    for (const clause of clauses) {
-      result += "for (const fact of this.facts) {\n";
+    for (const [idx, clause] of clauses.entries()) {
+      const indentLevel = idx + 1;
+      result += line(indentLevel, "for (const fact of this.facts) {");
 
       const constraints = await db.all(
         "SELECT * FROM 'constraint' WHERE clause_id = $clauseId",
@@ -75,7 +81,7 @@ async function compileConditionalQueries(queries, store) {
         store,
       );
 
-      result += "if (";
+      result += indented(indentLevel + 1, "if (");
 
       for (const [idx, cons] of constraints.entries()) {
         result += `fact.${cons.label}`;
@@ -99,7 +105,10 @@ async function compileConditionalQueries(queries, store) {
       const vars = constraints.filter((con) => con.type === "variable");
 
       for (const cons of vars) {
-        result += `const ${cons.label} = fact.${cons.label};\n`;
+        result += line(
+          indentLevel + 2,
+          `const ${cons.label} = fact.${cons.label};`,
+        );
       }
 
       const commit = await db.get(
@@ -108,13 +117,18 @@ async function compileConditionalQueries(queries, store) {
         store,
       );
 
-      const commitExpression = await compileCommits([commit], store);
+      const commitExpression = await compileCommits(
+        indentLevel + 2,
+        "this",
+        [commit],
+        store,
+      );
 
       result += commitExpression;
 
-      result += "}\n";
+      result += line(indentLevel + 1, "}");
 
-      result += "}\n";
+      result += line(indentLevel, "}");
     }
 
     result += "});\n";
@@ -123,8 +137,8 @@ async function compileConditionalQueries(queries, store) {
   return result;
 }
 
-async function compileCommits(commits, store) {
-  let result = "db.commit([\n";
+async function compileCommits(indentLevel, dbName, commits, store) {
+  let result = line(indentLevel, `${dbName}.commit([`);
 
   for (const commit of commits) {
     const clauses = await db.all(
@@ -142,11 +156,11 @@ async function compileCommits(commits, store) {
 
       const record = recordFromConstraints(commit.context, constraints);
 
-      result += "  " + record + ",\n";
+      result += line(indentLevel + 1, record + ",");
     }
   }
 
-  result += "]);\n";
+  result += line(indentLevel, "]);");
 
   return result;
 }
@@ -175,4 +189,19 @@ function recordFromConstraints(context, constraints) {
   result += "}";
 
   return result;
+}
+
+// Formatting helpers
+
+function indented(level, content) {
+  return `${makeIndent(level)}${content}`;
+}
+
+function line(indentLevel, content) {
+  return `${indented(indentLevel, content)}\n`;
+}
+
+function makeIndent(level) {
+  const spaces = level * 2;
+  return " ".repeat(spaces);
 }
