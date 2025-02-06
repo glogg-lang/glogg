@@ -23,6 +23,23 @@ describe("Persistence - Save and Load", () => {
     );
   });
 
+  it("Multiple commits", async () => {
+    await persistence.save(
+      store,
+      `commit: [#person name: "Robin" pets: 2 role: role]
+      commit: [#test]
+      `,
+    );
+
+    const extracted = await persistence.load(store);
+
+    assertNoWhitespace(
+      `commit: [ #person name: "Robin" pets: 2 role: role ]
+      commit: [ #test ]`,
+      extracted,
+    );
+  });
+
   it("Conditional commit", async () => {
     const input =
       "search: [#person name: name pets: p] commit: [#pet-owner name: name]";

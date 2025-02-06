@@ -7,14 +7,30 @@ export async function save(store, code) {
     return;
   }
 
-  const parsed = parser.query.run(code);
+  const queries = [];
 
-  if (!parsed.success) {
-    console.error("ERROR: Invalid code");
-    return;
+  while (true) {
+    const parsed = parser.query.run(code);
+
+    if (!parsed.success) {
+      throw new Error("Invalid code");
+    }
+
+    queries.push(parsed.value);
+
+    code = parsed.rest;
+    if (code.length === 0) {
+      break;
+    }
   }
 
-  const { search, bind, commit } = parsed.value;
+  for (const query of queries) {
+    await saveQuery(store, query);
+  }
+}
+
+async function saveQuery(store, query) {
+  const { search, bind, commit } = query;
 
   if (search.steps.length + bind.steps.length + commit.steps.length === 0) {
     return;
@@ -188,7 +204,7 @@ export async function load(store) {
     result += "\n";
   }
 
-  return result;
+  return result.trim() + '\n';
 }
 
 async function formatLines(store, lines) {
