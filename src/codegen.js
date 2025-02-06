@@ -107,7 +107,7 @@ async function compileConditionalQueries(queries, store) {
       for (const cons of vars) {
         result += line(
           indentLevel + 2,
-          `const ${cons.label} = fact.${cons.label};`,
+          `const ${cons.value} = fact.${cons.label};`,
         );
       }
 
