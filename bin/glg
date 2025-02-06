@@ -89,6 +89,24 @@ function getDbPath() {
   return [exists, dbPath];
 }
 
+async function gitInit() {
+  const gitPath = path.join(process.cwd(), ".git");
+  if (!fs.existsSync(gitPath)) {
+    console.log("No git repo initialized!");
+    return;
+  }
+
+  // TODO: check if files already contain these lines
+  fs.appendFileSync(
+    path.join(gitPath, "info/attributes"),
+    "*.glogg.db diff=glogg",
+  );
+  fs.appendFileSync(
+    path.join(gitPath, "config"),
+    '[diff "glogg"]\n    command="glogg git diff"',
+  );
+}
+
 async function diff() {
   const currentPath = process.argv[4];
   const targetPath = process.argv[5];
@@ -96,11 +114,26 @@ async function diff() {
   const currentDb = await glogDb.setup(currentPath);
   const targetDb = await glogDb.setup(targetPath);
 
-  const currentAst = await persistence.load(currentDb);
-  const targetAst = await persistence.load(targetDb);
+  const currentAst = (await persistence.load(currentDb)).trim();
+  const targetAst = (await persistence.load(targetDb)).trim();
 
-  console.log(currentAst);
-  console.log(targetAst);
+  console.log("");
+
+  if (currentAst == null || currentAst.length === 0) {
+    console.log("<EMPTY>");
+  } else {
+    console.log(currentAst);
+  }
+
+  console.log("\n---\n");
+
+  if (targetAst == null || targetAst.length === 0) {
+    console.log("<EMPTY>");
+  } else {
+    console.log(targetAst);
+  }
+
+  console.log("");
 }
 
 switch (cmd) {
@@ -117,7 +150,11 @@ switch (cmd) {
     break;
 
   case "git":
-    if (process.argv[3] === "diff") {
+    const subcmd = process.argv[3];
+
+    if (subcmd === "init") {
+      gitInit();
+    } else if (subcmd === "diff") {
       diff();
     } else {
       console.log("Unknown sub-command");
@@ -132,6 +169,7 @@ switch (cmd) {
         "",
         "init: setup a new database",
         "edit: edit contents of a database",
+        "git init: teach git how to diff gløgg code",
       ].join("\n"),
     );
 }
