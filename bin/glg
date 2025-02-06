@@ -49,13 +49,25 @@ async function edit() {
     childProcess.spawnSync(editor, [draftPath], { stdio: "inherit" });
 
     const writtenCode = fs.readFileSync(draftPath, { encoding: "utf-8" });
-    await persistence.save(store, writtenCode);
+
+    if (writtenCode.trim() !== existingCode.trim()) {
+      const tmpPath = dbPath + '.tmp';
+      const tmpStore = await glogDb.setup(tmpPath);
+
+      await persistence.save(tmpStore, writtenCode);
+
+      store.close();
+      tmpStore.close();
+
+      fs.rmSync(dbPath)
+      fs.renameSync(tmpPath, dbPath)
+    } else {
+      store.close();
+    }
 
     fs.rmSync(draftPath);
   } catch (e) {
     console.error(e);
-  } finally {
-    store.close();
   }
 }
 
