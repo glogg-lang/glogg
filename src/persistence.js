@@ -204,7 +204,7 @@ export async function load(store) {
     result += "\n";
   }
 
-  return result.trim() + '\n';
+  return result.trim() + "\n";
 }
 
 async function formatLines(store, lines) {

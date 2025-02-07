@@ -51,7 +51,7 @@ async function edit() {
     const writtenCode = fs.readFileSync(draftPath, { encoding: "utf-8" });
 
     if (writtenCode.trim() !== existingCode.trim()) {
-      const tmpPath = dbPath + '.tmp';
+      const tmpPath = dbPath + ".tmp";
       const tmpStore = await glogDb.setup(tmpPath);
 
       await persistence.save(tmpStore, writtenCode);
@@ -59,8 +59,8 @@ async function edit() {
       store.close();
       tmpStore.close();
 
-      fs.rmSync(dbPath)
-      fs.renameSync(tmpPath, dbPath)
+      fs.rmSync(dbPath);
+      fs.renameSync(tmpPath, dbPath);
     } else {
       store.close();
     }
