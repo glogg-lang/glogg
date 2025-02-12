@@ -44,7 +44,7 @@ There are a couple of benefits with this approach:
 
 1. Since we store code, not text, code will be consistently formatted without requiring external tools.
 2. Code is easily available. Tools for refactoring, visualizing, code generation, linting etc. can easily be made
-in any language that can connect to a SQLite database (which is most of them).
+   in any language that can connect to a SQLite database (which is most of them).
 3. Code is stored in a validated state. "Compiling" is fast because most of the work is already done.
 
 If you want to store your Gløgg project in Git, we recommend running `glg git init`. This will teach Git about
@@ -145,11 +145,11 @@ you can attach listeners for when certain events (record added, modified, delete
 Maybe it could look like this:
 
 ```js
-const program = require('./app.js'); //compiled with glg make
+const program = require("./app.js"); //compiled with glg make
 
-const listener = program.context('html');
+const listener = program.context("html");
 
-listener.on('new_record', (record) => {
+listener.on("new_record", (record) => {
   const el = document.createElement(record.tag);
   el.innerText = record.text;
 
