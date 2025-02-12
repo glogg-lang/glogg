@@ -24,7 +24,7 @@ commit @stdio:
 Here, we have two code blocks.
 
 The first is an unconditional commit that defines five ducks and their relation to each other.
-Do note that Gløgg is a dynamicly typed language. Claiming that something is a `duck` does not
+Do note that Gløgg is a dynamically typed language. Claiming that something is a `duck` does not
 restrict the fields or values that can be placed in a record.
 
 The second block, starting with `search:`, is a conditional commit. This block commits a message
@@ -120,7 +120,7 @@ happens (which would otherwise stop the search).
 You can also extract the frequency using `n/`, wich would store the frequency in the `n` variable. This would allow you
 to check if two patterns happens an equal amount of times.
 
-Gren should also support numerical operations and comparisons, which would open up more possibilities.
+Gløgg should also support numerical operations and comparisons, which would open up more possibilities.
 
 Frequencies is currently not implemented in any form.
 
