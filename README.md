@@ -1,9 +1,11 @@
 # Gløgg
 
-A declarative language, for a civilized age. Code is inspired by logic languages like Datalog and Eve, and makes you store code in a SQLite database. This particular implementation generates JavaScript, but
-since the AST is stored in a relational database, adding different backends should be relatively easy.
+A declarative language, for a more civilized age.
 
-_This is a proof of concept. This language was the result of a week-long personal hackaton. It has bugs. It has lots of missing features. Finishing this language is left as an excercize for the reader._
+Gløgg is inspired by logic languages like [Datalog](https://en.wikipedia.org/wiki/Datalog) and [Eve](https://witheve.com/), and makes you store code in a [SQLite](https://sqlite.org/) database.
+This particular implementation generates JavaScript, but since the AST is stored in a relational database, adding different backends should be relatively easy.
+
+_This is a proof of concept. This language was the result of a week-long personal hackaton. It has bugs. It has missing features. Finishing this language is left as an excercize for the reader._
 
 ## What does it look like?
 
@@ -16,7 +18,8 @@ commit:
   [ #duck name: "Louie" uncle: "Donald" ]
 
 search:
-  [ #duck name: name uncle: "Donald" ]
+  [ #duck name: scrooges-nephew uncle: "Scrooge" ]
+  [ #duck name: name uncle: scrooges-nephew ]
 commit @stdio:
   [ #log message: name ]
 ```
@@ -28,7 +31,7 @@ Do note that Gløgg is a dynamically typed language. Claiming that something is 
 restrict the fields or values that can be placed in a record.
 
 The second block, starting with `search:`, is a conditional commit. This block commits a message
-to the `stdio` context table for every duck that has `uncle: "Donald"`.
+to the `stdio` context table for every duck that is the nephew of Scrooge's nephew (Donald).
 
 Code blocks, or queries, are kept up-to-date. If a new duck with `uncle: "Donald"` was added
 during the runtime of the program, it too would be printed to the terminal.
@@ -103,8 +106,8 @@ hand, is permanent. Commited records will remain in memory, even if the `search`
 
 ### Frequencies
 
-Gløgg is meant to implement ideas from the DatalogFS paper. The idea is that you can work based on the number of times
-a pattern is matched.
+Gløgg is meant to implement ideas from the [DatalogFS](https://web.cs.ucla.edu/~zaniolo/papers/datalogFS.pdf) paper.
+The idea is that you can work based on the number of times a pattern is matched.
 
 ```
 search:
