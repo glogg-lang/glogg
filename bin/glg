@@ -115,7 +115,7 @@ async function gitInit() {
   );
   fs.appendFileSync(
     path.join(gitPath, "config"),
-    '[diff "glogg"]\n    command="glogg git diff"',
+    '[diff "glogg"]\n    command="glg git diff"',
   );
 }
 
