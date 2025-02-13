@@ -71,9 +71,13 @@ async function compileConditionalQueries(queries, store) {
       store,
     );
 
+    const boundVars = {};
+    let indentLevel = 1;
+
     for (const [idx, clause] of clauses.entries()) {
-      const indentLevel = idx + 1;
-      result += line(indentLevel, "for (const fact of this.facts) {");
+      const factVar = `fact\$${idx}`;
+
+      result += line(indentLevel, `for (const ${factVar} of this.facts) {`);
 
       const constraints = await db.all(
         "SELECT * FROM 'constraint' WHERE clause_id = $clauseId",
@@ -81,10 +85,12 @@ async function compileConditionalQueries(queries, store) {
         store,
       );
 
-      result += indented(indentLevel + 1, "if (");
+      indentLevel++;
+
+      result += indented(indentLevel, "if (");
 
       for (const [idx, cons] of constraints.entries()) {
-        result += `fact.${cons.label}`;
+        result += `${factVar}.${normalizeVariable(cons.label)}`;
 
         switch (cons.type) {
           case "string":
@@ -92,6 +98,12 @@ async function compileConditionalQueries(queries, store) {
             break;
           case "number":
             result += ` === ${cons.value}`;
+            break;
+          case "variable":
+            const varName = normalizeVariable(cons.value);
+            if (boundVars[varName]) {
+              result += ` === ${varName}`;
+            }
             break;
         }
 
@@ -102,32 +114,43 @@ async function compileConditionalQueries(queries, store) {
 
       result += ") {\n";
 
+      indentLevel++;
+
       const vars = constraints.filter((con) => con.type === "variable");
 
       for (const cons of vars) {
+        const varName = normalizeVariable(cons.value);
+
+        if (boundVars[varName]) {
+          continue;
+        }
+
+        boundVars[varName] = true;
+
         result += line(
-          indentLevel + 2,
-          `const ${cons.value} = fact.${cons.label};`,
+          indentLevel,
+          `const ${varName} = ${factVar}.${normalizeVariable(cons.label)};`,
         );
       }
+    }
 
-      const commit = await db.get(
-        "SELECT * FROM 'commit' WHERE query_id = $queryId",
-        { $queryId: query.id },
-        store,
-      );
+    const commit = await db.get(
+      "SELECT * FROM 'commit' WHERE query_id = $queryId",
+      { $queryId: query.id },
+      store,
+    );
 
-      const commitExpression = await compileCommits(
-        indentLevel + 2,
-        "this",
-        [commit],
-        store,
-      );
+    const commitExpression = await compileCommits(
+      indentLevel,
+      "this",
+      [commit],
+      store,
+    );
 
-      result += commitExpression;
+    result += commitExpression;
 
-      result += line(indentLevel + 1, "}");
-
+    while (indentLevel > 1) {
+      indentLevel--;
       result += line(indentLevel, "}");
     }
 
@@ -135,6 +158,10 @@ async function compileConditionalQueries(queries, store) {
   }
 
   return result;
+}
+
+function normalizeVariable(varName) {
+  return varName.replace("-", "_");
 }
 
 async function compileCommits(indentLevel, dbName, commits, store) {
@@ -180,7 +207,7 @@ function recordFromConstraints(context, constraints) {
         value = constraint.value.toString();
         break;
       case "variable":
-        value = constraint.value;
+        value = normalizeVariable(constraint.value);
     }
 
     result += `"${label}": ${value}, `;
