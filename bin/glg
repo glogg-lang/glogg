@@ -25,7 +25,22 @@ async function edit() {
   const [dbExists, dbPath] = getDbPath();
 
   if (!dbExists) {
-    console.log("No database found, cannot start edit.");
+    console.log("No database found, start a new database with `glg init`.");
+    return;
+  }
+
+  const store = await glogDb.setup(dbPath);
+
+  if (process.argv[3] === "--from=stdin" && process.stdin) {
+    try {
+      const codeToInsert = fs.readFileSync(process.stdin.fd, 'utf-8');
+      await persistence.save(store, codeToInsert);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      store.close();
+    }
+
     return;
   }
 
@@ -38,7 +53,6 @@ async function edit() {
     return;
   }
 
-  const store = await glogDb.setup(dbPath);
 
   try {
     const draftPath = path.join(process.cwd(), "draft.glogg");
