@@ -35,7 +35,7 @@ async function edit() {
 
   if (process.argv[3] === "--from=stdin" && process.stdin) {
     try {
-      const codeToInsert = fs.readFileSync(process.stdin.fd, 'utf-8');
+      const codeToInsert = fs.readFileSync(process.stdin.fd, "utf-8");
       await persistence.save(store, codeToInsert);
     } catch (e) {
       console.error(e);

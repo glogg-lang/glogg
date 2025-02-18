@@ -1,7 +1,7 @@
 run:
   ancestor:
     prerequisiteCwd: .
-    prerequisites: 
+    prerequisites:
       - rm app.glogg.db || true
       - bin/glg init
       - 'echo "{{code}}" | bin/glg edit --from=stdin'
@@ -9,9 +9,9 @@ run:
     command: node app.js
     expectCode: 0
     outputContains:
-    - Hewie
-    - Dewie
-    - Louie
+      - Hewie
+      - Dewie
+      - Louie
 vars:
   code: |
     commit:
