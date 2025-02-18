@@ -6,7 +6,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha test/** --bail -P -R min",
+    "test": "mocha tests/** --bail -R dot && judo e2e-tests",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/glogg-lang/glogg#readme",
   "devDependencies": {
+    "@intuit/judo": "^0.4.3",
     "mocha": "^11.1.0",
     "prettier": "^3.5.0"
   },
