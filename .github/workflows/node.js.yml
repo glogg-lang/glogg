@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 jobs:
-  format:
+  validate-code-formatting:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
       - run: npm run format:check
 
   build:
-    depends-on: "format"
+    needs: validate-code-formatting
 
     strategy:
       fail-fast: false
