@@ -11,7 +11,25 @@ defaults:
     shell: bash
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run format:check
+
   build:
+    depends-on: "format"
+
     strategy:
       fail-fast: false
       matrix:
@@ -30,7 +48,5 @@ jobs:
           cache: "npm"
 
       - run: npm ci
-
-      - run: npm run format:check
 
       - run: npm test
