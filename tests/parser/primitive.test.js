@@ -14,7 +14,10 @@ describe("Parser primitives", () => {
 
     it("sanity check: fails if passed string starting with different character", () => {
       const parser = parse.char("b");
-      assert.equal(parser.run("cars").success, false);
+      const result = parser.run("cars");
+
+      assert.equal(result.success, false);
+      assert.equal(result.rest, "cars");
     });
   });
 
@@ -31,6 +34,7 @@ describe("Parser primitives", () => {
       const result = parse.anythingBut(";").run("; but no longer");
 
       assert.equal(result.success, false);
+      assert.equal(result.rest, "; but no longer");
     });
   });
 
@@ -45,7 +49,11 @@ describe("Parser primitives", () => {
     });
 
     it("fails if the strings doesn't match", () => {
-      assert.equal(parse.word("hello").run("hallo").success, false);
+      const result = parse.word("hello").run("hallo");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "word: hello");
+      assert.equal(result.rest, "hallo");
     });
 
     it("fails if the string to parse isn't long enough", () => {
@@ -65,7 +73,11 @@ describe("Parser primitives", () => {
     });
 
     it("fails for any other kind of character", () => {
-      assert.equal(parse.whitespace.run("a").success, false);
+      const result = parse.whitespace.run("a");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "whitespace");
+      assert.equal(result.rest, "a");
     });
   });
 
@@ -79,7 +91,10 @@ describe("Parser primitives", () => {
     });
 
     it("fails if any input remains", () => {
-      assert.equal(parse.end.run(" ").success, false);
+      const result = parse.end.run(" ");
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "end");
+      assert.equal(result.rest, " ");
     });
   });
 
@@ -103,7 +118,11 @@ describe("Parser primitives", () => {
     });
 
     it("sanity check: fails if passed string starting with different character", () => {
-      assert.equal(parse.digit.run("arr").success, false);
+      const result = parse.digit.run("arr");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "digit");
+      assert.equal(result.rest, "arr");
     });
   });
 
@@ -119,19 +138,35 @@ describe("Parser primitives", () => {
     });
 
     it("fails on uppercase letters", () => {
-      assert.equal(parse.lowercase.run("A").success, false);
+      const result = parse.lowercase.run("A");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "lowercase");
+      assert.equal(result.rest, "A");
     });
 
     it("fails on numbers", () => {
-      assert.equal(parse.lowercase.run("1").success, false);
+      const result = parse.lowercase.run("1");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "lowercase");
+      assert.equal(result.rest, "1");
     });
 
     it("fails on punctiation", () => {
-      assert.equal(parse.lowercase.run(".").success, false);
+      const result = parse.lowercase.run(".");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "lowercase");
+      assert.equal(result.rest, ".");
     });
 
     it("fails on empty string", () => {
-      assert.equal(parse.lowercase.run("").success, false);
+      const result = parse.lowercase.run("");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "lowercase");
+      assert.equal(result.rest, "");
     });
   });
 
@@ -147,19 +182,35 @@ describe("Parser primitives", () => {
     });
 
     it("fails on lowercase letters", () => {
-      assert.equal(parse.uppercase.run("a").success, false);
+      const result = parse.uppercase.run("a");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "uppercase");
+      assert.equal(result.rest, "a");
     });
 
     it("fails on numbers", () => {
-      assert.equal(parse.uppercase.run("1").success, false);
+      const result = parse.uppercase.run("1");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "uppercase");
+      assert.equal(result.rest, "1");
     });
 
     it("fails on punctiation", () => {
-      assert.equal(parse.uppercase.run(".").success, false);
+      const result = parse.uppercase.run(".");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "uppercase");
+      assert.equal(result.rest, ".");
     });
 
     it("fails on empty string", () => {
-      assert.equal(parse.uppercase.run("").success, false);
+      const result = parse.uppercase.run("");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "uppercase");
+      assert.equal(result.rest, "");
     });
   });
 
@@ -187,7 +238,11 @@ describe("Parser primitives", () => {
         parse.char("c"),
       );
 
-      assert.equal(parser.run("delta").success, false);
+      const result = parser.run("delta");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "one of: char: a, char: b, char: c");
+      assert.equal(result.rest, "delta");
     });
   });
 
@@ -213,7 +268,11 @@ describe("Parser primitives", () => {
         parse.char(")"),
       );
 
-      assert.equal(parser.run("(a) is a number").success, false);
+      const result = parser.run("(a) is a number");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, "digit");
+      assert.equal(result.rest, "a) is a number");
     });
   });
 
@@ -245,7 +304,11 @@ describe("Parser primitives", () => {
     });
 
     it("if it cannot match N times, it fails", () => {
-      assert.equal(parse.nOrMore(3, parse.digit).run("12.456").success, false);
+      const result = parse.nOrMore(3, parse.digit).run("12.456");
+
+      assert.equal(result.success, false);
+      assert.equal(result.expected, `3 or more of digit`);
+      assert.equal(result.rest, "12.456");
     });
 
     it("continues matching past N", () => {
@@ -315,6 +378,8 @@ describe("Parser primitives", () => {
       const result = parser.run("hello");
 
       assert.equal(result.success, false);
+      assert.equal(result.expected, "1 or more of digit");
+      assert.equal(result.rest, "hello");
     });
 
     it("works for sequences and keeps, as well", () => {

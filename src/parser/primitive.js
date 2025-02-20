@@ -25,7 +25,7 @@ export class Parser {
           value: mapped,
         };
       } catch (_) {
-        return { success: false };
+        return { success: false, expected: "map failed", rest: str };
       }
     });
   }
@@ -73,7 +73,7 @@ export class Parser {
           value: mapped,
         };
       } catch (_) {
-        return { success: false };
+        return { success: false, expected: "map keeps failed", rest: str };
       }
     });
   }
@@ -89,7 +89,7 @@ export function char(c) {
         rest: str.slice(1),
       };
     } else {
-      return { success: false };
+      return { success: false, expected: `char: ${c}`, rest: str };
     }
   });
 }
@@ -104,7 +104,7 @@ export function anythingBut(c) {
         rest: str.slice(1),
       };
     } else {
-      return { success: false };
+      return { success: false, expected: `anything but ${c}`, rest: str };
     }
   });
 }
@@ -121,7 +121,7 @@ export function word(word) {
       };
     }
 
-    return { success: false };
+    return { success: false, expected: `word: ${word}`, rest: str };
   });
 }
 
@@ -138,7 +138,7 @@ export const whitespace = new Parser((str) => {
         rest: str.slice(1),
       };
     default:
-      return { success: false };
+      return { success: false, expected: "whitespace", rest: str };
   }
 });
 
@@ -151,7 +151,7 @@ export const end = new Parser((str) => {
     };
   }
 
-  return { success: false };
+  return { success: false, expected: "end", rest: str };
 });
 
 export const digit = new Parser((str) => {
@@ -173,7 +173,7 @@ export const digit = new Parser((str) => {
         rest: str.slice(1),
       };
     default:
-      return { success: false };
+      return { success: false, expected: "digit", rest: str };
   }
 });
 
@@ -189,7 +189,7 @@ export const lowercase = new Parser((str) => {
     };
   }
 
-  return { success: false };
+  return { success: false, expected: "lowercase", rest: str };
 });
 
 const uppercaseRegex = /\p{Lu}/u;
@@ -204,19 +204,27 @@ export const uppercase = new Parser((str) => {
     };
   }
 
-  return { success: false };
+  return { success: false, expected: "uppercase", rest: str };
 });
 
 export function oneOf(...parsers) {
   return new Parser((str) => {
+    const failedResults = [];
+
     for (const parser of parsers) {
       const result = parser.run(str);
       if (result.success) {
         return result;
       }
+
+      failedResults.push(result);
     }
 
-    return { success: false };
+    return {
+      success: false,
+      expected: `one of: ${failedResults.map((r) => r.expected).join(", ")}`,
+      rest: str,
+    };
   });
 }
 
@@ -237,7 +245,7 @@ export function sequence(...parsers) {
           forKeeps.push(result.value);
         }
       } else {
-        return { success: false };
+        return result;
       }
     }
 
@@ -271,6 +279,7 @@ export function nOrMore(n, parser) {
     let iterations = 0;
     let value = [];
     let rest = str;
+    let lastFailed = null;
 
     while (true) {
       const result = parser.run(rest);
@@ -280,6 +289,7 @@ export function nOrMore(n, parser) {
         rest = result.rest;
         iterations++;
       } else {
+        lastFailed = result;
         break;
       }
     }
@@ -292,6 +302,10 @@ export function nOrMore(n, parser) {
       };
     }
 
-    return { success: false };
+    return {
+      success: false,
+      expected: `${n} or more of ${lastFailed != null ? lastFailed.expected : "<>"}`,
+      rest: str,
+    };
   });
 }

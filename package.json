@@ -6,7 +6,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha tests/** --bail -R dot && judo e2e-tests",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "mocha tests/** --bail -R dot",
+    "test:e2e": "judo e2e-tests",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },

@@ -13,7 +13,17 @@ export async function save(store, code) {
     const parsed = parser.query.run(code);
 
     if (!parsed.success) {
-      throw new Error("Invalid code");
+      const errorMsg = `
+Parse failure!
+
+On this line:
+
+   ${parsed.rest.split("\n")[0]}
+
+I expected ${parsed.expected}.
+`.trim();
+
+      throw new Error(errorMsg);
     }
 
     queries.push(parsed.value);
