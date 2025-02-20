@@ -7,8 +7,8 @@
   "type": "module",
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "mocha tests/**/*.test.js --bail -R dot",
-    "test:e2e": "mocha e2e-tests/**/*.test.js --bail",
+    "test:unit": "mocha tests --recursive --bail -R dot",
+    "test:e2e": "mocha e2e-tests --recursive --bail",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },
