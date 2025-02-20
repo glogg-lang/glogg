@@ -1,5 +1,5 @@
 import { Db } from "#src/runtime";
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 describe("Runtime", () => {
   describe("Storing facts", () => {

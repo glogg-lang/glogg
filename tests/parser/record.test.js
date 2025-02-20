@@ -1,6 +1,6 @@
 import * as parse from "#src/parser/record";
 import * as atom from "#src/parser/atom";
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 describe("Record parsing", () => {
   describe("empty record", () => {

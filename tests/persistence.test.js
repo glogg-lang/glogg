@@ -1,6 +1,6 @@
 import * as persistence from "#src/persistence";
 import * as db from "#src/db";
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 let store = null;
 

@@ -1,5 +1,5 @@
 import * as parse from "#src/parser/atom";
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 describe("Atom parsing", () => {
   describe("whitespace", () => {

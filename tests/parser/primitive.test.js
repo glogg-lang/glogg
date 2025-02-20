@@ -1,5 +1,5 @@
 import * as parse from "#src/parser/primitive";
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 describe("Parser primitives", () => {
   describe("char", () => {

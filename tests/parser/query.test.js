@@ -1,6 +1,6 @@
 import * as parse from "#src/parser/query";
 import * as atom from "#src/parser/atom";
-import * as assert from "node:assert";
+import assert from "node:assert";
 
 describe("Query parsing", () => {
   describe("Commit", () => {
