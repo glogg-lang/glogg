@@ -7,8 +7,8 @@
   "type": "module",
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "mocha tests/** --bail -R dot",
-    "test:e2e": "judo e2e-tests",
+    "test:unit": "mocha tests/**/*.test.js --bail -R dot",
+    "test:e2e": "mocha e2e-tests/**/*.test.js --bail",
     "format": "prettier -w .",
     "format:check": "prettier -c ."
   },
@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/glogg-lang/glogg#readme",
   "devDependencies": {
-    "@intuit/judo": "^0.4.3",
     "mocha": "^11.1.0",
     "prettier": "^3.5.0"
   },
