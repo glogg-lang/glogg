@@ -3,9 +3,9 @@ run:
     prerequisiteCwd: .
     prerequisites:
       - rm app.glogg.db || true
-      - bin/glg init
-      - 'echo "{{code}}" | bin/glg edit --from=stdin'
-      - bin/glg make
+      - npx glg init
+      - 'echo "{{code}}" | npx glg edit --from=stdin'
+      - npx glg make
     command: node app.js
     expectCode: 0
     outputContains:
