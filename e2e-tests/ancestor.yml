@@ -15,14 +15,14 @@ run:
 vars:
   code: |
     commit:
-      [ #duck name: "Scrooge" ]
-      [ #duck name: "Donald" uncle: "Scrooge" ]
-      [ #duck name: "Hewie" uncle: "Donald" ]
-      [ #duck name: "Dewie" uncle: "Donald" ]
-      [ #duck name: "Louie" uncle: "Donald" ]
+      [ #duck name: \"Scrooge\" ]
+      [ #duck name: \"Donald\" uncle: \"Scrooge\" ]
+      [ #duck name: \"Hewie\" uncle: \"Donald\" ]
+      [ #duck name: \"Dewie\" uncle: \"Donald\" ]
+      [ #duck name: \"Louie\" uncle: \"Donald\" ]
 
     search:
-      [ #duck name: scrooges-nephew uncle: "Scrooge" ]
+      [ #duck name: scrooges-nephew uncle: \"Scrooge\" ]
       [ #duck name: name uncle: scrooges-nephew ]
     commit @stdio:
       [ #log message: name ]
