@@ -5,11 +5,12 @@ import assert from "node:assert";
 
 const tmpDir = ".e2etmp";
 const tmpDirPath = path.join(process.cwd(), tmpDir);
+const glg = path.join(process.cwd(), "bin", "glg");
 
 describe("E2E", () => {
   beforeEach(() => {
     fs.mkdirSync(tmpDir);
-    proc.execSync(`npx --offline glg init`, {
+    proc.execSync(`node ${glg} init`, {
       cwd: tmpDirPath,
     });
   });
@@ -39,12 +40,12 @@ commit @stdio:
 });
 
 function compileAndRun(code) {
-  proc.execSync(`npx --offline glg edit --from=stdin`, {
+  proc.execSync(`node ${glg} edit --from=stdin`, {
     cwd: tmpDirPath,
     input: code.trim(),
   });
 
-  proc.execSync(`npx --offline glg make`, {
+  proc.execSync(`node ${glg} make`, {
     cwd: tmpDirPath,
   });
 
