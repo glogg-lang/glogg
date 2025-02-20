@@ -10,7 +10,7 @@ const glg = path.join(process.cwd(), "bin", "glg");
 describe("E2E", () => {
   beforeEach(() => {
     fs.mkdirSync(tmpDir);
-    proc.execSync(`${glg} init`, {
+    proc.execSync(`node ${glg} init`, {
       cwd: tmpDirPath,
     });
   });
@@ -40,12 +40,12 @@ commit @stdio:
 });
 
 function compileAndRun(code) {
-  proc.execSync(`${glg} edit --from=stdin`, {
+  proc.execSync(`node ${glg} edit --from=stdin`, {
     cwd: tmpDirPath,
     input: code.trim(),
   });
 
-  proc.execSync(`${glg} make`, {
+  proc.execSync(`node ${glg} make`, {
     cwd: tmpDirPath,
   });
 
