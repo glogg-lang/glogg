@@ -1,7 +1,8 @@
 import * as db from "#src/db";
-import * as fs from "node:fs";
+import fs from "node:fs";
+import url from "node:url";
 
-const runtimePath = new URL(import.meta.resolve("#src/runtime")).pathname;
+const runtimePath = url.fileURLToPath(import.meta.resolve("#src/runtime"));
 
 export async function make(store) {
   const runtimePrelude = fs
