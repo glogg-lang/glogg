@@ -241,7 +241,7 @@ describe("Parser primitives", () => {
       const result = parser.run("delta");
 
       assert.equal(result.success, false);
-      assert.equal(result.expected, "one of: char: a, char: b, char: c");
+      assert.equal(result.expected, "(guess from oneOf) char: a");
       assert.equal(result.rest, "delta");
     });
   });

@@ -220,10 +220,14 @@ export function oneOf(...parsers) {
       failedResults.push(result);
     }
 
+    const furthestParse = failedResults.toSorted(
+      (a, b) => a.rest.length - b.rest.length,
+    )[0];
+
     return {
       success: false,
-      expected: `one of: ${failedResults.map((r) => r.expected).join(", ")}`,
-      rest: str,
+      expected: "(guess from oneOf) " + furthestParse.expected,
+      rest: furthestParse.rest,
     };
   });
 }
