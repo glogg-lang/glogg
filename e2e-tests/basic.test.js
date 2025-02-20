@@ -5,7 +5,7 @@ import assert from "node:assert";
 
 const tmpDir = ".e2etmp";
 const tmpDirPath = path.join(process.cwd(), tmpDir);
-const glg = path.join(process.cwd(), 'bin', 'glg')
+const glg = path.join(process.cwd(), "bin", "glg");
 
 describe("E2E", () => {
   beforeEach(() => {
