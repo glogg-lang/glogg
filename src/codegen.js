@@ -2,16 +2,12 @@ import * as db from "#src/db";
 import fs from "node:fs";
 import url from "node:url";
 
-const runtimePath = url.fileURLToPath(import.meta.resolve("#src/runtime"));
-
 export async function make(store) {
-  const runtimePrelude = fs
-    .readFileSync(runtimePath, { encoding: "utf-8" })
-    .replace("export ", "");
+  const runtimePrelude = 'import * as runtime from "glogg-lang/runtime";';
 
   let result = runtimePrelude + "\n\n";
 
-  result += "const db = init();\n\n";
+  result += "const db = runtime.init();\n\n";
 
   const unconditionalCommits = await db.all(
     [

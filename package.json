@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "",
   "private": true,
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
@@ -29,10 +28,13 @@
   "imports": {
     "#src/*": "./src/*.js"
   },
-  "dependencies": {
-    "sqlite3": "^5.1.6"
+  "exports": {
+    "./runtime": "./src/runtime.js"
   },
   "bin": {
     "glg": "bin/glg"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
   }
 }

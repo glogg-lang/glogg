@@ -1,4 +1,4 @@
-/* This file is attached to every compiled .js file from `glg make`
+/* This module is imported by every program compiled by `glg make`
  */
 
 export class Db {
@@ -66,7 +66,7 @@ function deepEqual(left, right) {
   return true;
 }
 
-function init() {
+export function init() {
   const db = new Db();
 
   db.onChange(function () {
