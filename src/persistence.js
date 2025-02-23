@@ -248,3 +248,17 @@ async function formatLines(store, lines) {
 
   return result;
 }
+
+export async function addIntegration(store, contextPrefix, importName) {
+  await db.run(
+    [
+      "INSERT INTO integration (context_prefix, import_name)",
+      "VALUES ($contextPrefix, $importName)",
+    ].join(""),
+    {
+      $contextPrefix: contextPrefix,
+      $importName: importName,
+    },
+    store,
+  );
+}

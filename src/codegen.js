@@ -3,9 +3,19 @@ import fs from "node:fs";
 import url from "node:url";
 
 export async function make(store) {
-  const runtimePrelude = 'import * as runtime from "glogg-lang/runtime";';
+  let imports = 'import * as runtime from "glogg-lang/runtime";\n';
 
-  let result = runtimePrelude + "\n\n";
+  const integrations = await db.all(
+    ["SELECT * FROM integration"].join("\n"),
+    {},
+    store,
+  );
+
+  for (let integration of integrations) {
+    imports += `import * as integration${integration.id} from "${integration.import_name}";\n`;
+  }
+
+  let result = imports + "\n";
 
   result += "const db = runtime.init();\n\n";
 
