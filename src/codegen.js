@@ -17,7 +17,7 @@ export async function make(store) {
 
   let result = imports + "\n";
 
-  result += "const db = runtime.init();\n\n";
+  result += "const db = new runtime.Db();\n\n";
 
   const unconditionalCommits = await db.all(
     [

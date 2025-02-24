@@ -65,19 +65,3 @@ function deepEqual(left, right) {
 
   return true;
 }
-
-export function init() {
-  const db = new Db();
-
-  db.onChange(function () {
-    const outputs = this.facts.filter((fact) => "stdio/tag" in fact);
-    if (outputs.length === 0) {
-      return;
-    }
-
-    const lastOutput = outputs[outputs.length - 1];
-    console.log(lastOutput["stdio/message"]);
-  });
-
-  return db;
-}

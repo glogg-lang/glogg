@@ -13,6 +13,10 @@ describe("E2E", () => {
     proc.execSync(`node ${glg} init`, {
       cwd: tmpDirPath,
     });
+
+    proc.execSync(`node ${glg} integration terminal glogg-lang/terminal`, {
+      cwd: tmpDirPath,
+    });
   });
 
   afterEach(() => {
@@ -31,7 +35,7 @@ commit:
 search:
   [ #duck name: scrooges-nephew uncle: "Scrooge" ]
   [ #duck name: name uncle: scrooges-nephew ]
-commit @stdio:
+commit @terminal:
   [ #log message: name ]
 `);
 
