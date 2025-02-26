@@ -72,6 +72,20 @@ async function edit() {
 
       await persistence.save(tmpStore, writtenCode);
 
+      const existingIntegrations = await glogDb.all(
+        "SELECT * FROM integration",
+        {},
+        store,
+      );
+
+      for (let integration of existingIntegrations) {
+        await persistence.addIntegration(
+          tmpStore,
+          integration.context_prefix,
+          integration.import_name,
+        );
+      }
+
       store.close();
       tmpStore.close();
 
