@@ -35,7 +35,7 @@ async function edit() {
   const editOpts = {};
 
   if (process.argv[3] === "--from=stdin" && process.stdin) {
-    editOpts.code = fs.readFileSync(process.stdin.fd, "utf-8");
+    editOpts.code = fs.readFileSync(process.stdin.fd, "utf8");
   } else {
     const editor = process.env["EDITOR"];
 
@@ -68,7 +68,10 @@ async function make() {
   }
 
   try {
-    await glogg.make(dbPath);
+    const code = await glogg.make(dbPath);
+
+    const bundlePath = path.join(path.dirname(dbPath), "app.js");
+    fs.writeFileSync(bundlePath, code, { encoding: "utf8" });
   } catch (e) {
     console.error(e);
     process.exitCode = 1;

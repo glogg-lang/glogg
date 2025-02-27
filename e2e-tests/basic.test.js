@@ -41,7 +41,11 @@ commit @terminal:
 
 async function compileAndRun(code) {
   await glogg.edit(dbPath, { code: code });
-  await glogg.make(dbPath);
+  const compiled = await glogg.make(dbPath);
+
+  fs.writeFileSync(path.join(tmpDirPath, "app.js"), compiled, {
+    encoding: "utf8",
+  });
 
   return proc.execSync("node app.js", {
     cwd: tmpDirPath,

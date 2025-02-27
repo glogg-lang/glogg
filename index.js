@@ -28,11 +28,11 @@ export async function edit(dbPath, { editor, code }) {
   const draftPath = path.join(process.cwd(), "draft.glogg");
 
   const existingCode = await persistence.load(store);
-  fs.writeFileSync(draftPath, existingCode, { encoding: "utf-8" });
+  fs.writeFileSync(draftPath, existingCode, { encoding: "utf8" });
 
   childProcess.spawnSync(editor, [draftPath], { stdio: "inherit" });
 
-  const writtenCode = fs.readFileSync(draftPath, { encoding: "utf-8" });
+  const writtenCode = fs.readFileSync(draftPath, { encoding: "utf8" });
 
   if (writtenCode.trim() !== existingCode.trim()) {
     const tmpPath = dbPath + ".tmp";
@@ -70,11 +70,7 @@ export async function make(dbPath) {
   const store = await glogDb.setup(dbPath);
 
   try {
-    const code = await codegen.make(store);
-
-    const bundlePath = path.join(path.dirname(dbPath), "app.js");
-
-    fs.writeFileSync(bundlePath, code, { encoding: "utf-8" });
+    return await codegen.make(store);
   } catch (e) {
     throw e;
   } finally {
