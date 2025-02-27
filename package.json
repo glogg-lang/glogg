@@ -29,7 +29,7 @@
     "#src/*": "./src/*.js"
   },
   "exports": {
-    "./bin": "./bin/glg",
+    ".": "./index.js",
     "./runtime": "./src/runtime.js",
     "./terminal": "./src/terminal_integration.js"
   },
