@@ -4,6 +4,7 @@ import process from "node:process";
 import path from "node:path";
 import fs from "node:fs";
 import childProcess from "node:child_process";
+import * as glogg from "glogg-lang";
 import * as glogDb from "#src/db";
 import * as persistence from "#src/persistence";
 import * as codegen from "#src/codegen";
@@ -11,77 +12,46 @@ import * as codegen from "#src/codegen";
 const cmd = process.argv[2];
 
 async function init() {
-  const [dbExists, dbPath] = getDbPath();
+  const [dbExists, dbPath] = glogg.getDbPath();
 
   if (dbExists) {
-    console.log("Database already exists at: " + dbPath);
+    console.error("Database already exists at: " + dbPath);
     process.exitCode = 1;
     return;
   }
 
-  await glogDb.setup(dbPath);
+  await glogg.init(dbPath);
 }
 
 async function edit() {
-  const [dbExists, dbPath] = getDbPath();
+  const [dbExists, dbPath] = glogg.getDbPath();
 
   if (!dbExists) {
-    console.log("No database found, start a new database with `glg init`.");
+    console.error("No database found, start a new database with `glg init`.");
     process.exitCode = 1;
     return;
   }
 
-  const store = await glogDb.setup(dbPath);
+  const editOpts = {};
 
   if (process.argv[3] === "--from=stdin" && process.stdin) {
-    try {
-      const codeToInsert = fs.readFileSync(process.stdin.fd, "utf-8");
-      await persistence.save(store, codeToInsert);
-    } catch (e) {
-      console.error(e);
+    editOpts.code = fs.readFileSync(process.stdin.fd, "utf8");
+  } else {
+    const editor = process.env["EDITOR"];
+
+    if (!editor) {
+      console.error(
+        "No editor set. Please define your preferred text editor by seeting the EDTIOR environment variable.",
+      );
       process.exitCode = 1;
-    } finally {
-      store.close();
+      return;
     }
 
-    return;
-  }
-
-  const editor = process.env["EDITOR"];
-
-  if (!editor) {
-    console.log(
-      "No editor set. Please define your preferred text editor by seeting the EDTIOR environment variable.",
-    );
-    return;
+    editOpts.editor = editor;
   }
 
   try {
-    const draftPath = path.join(process.cwd(), "draft.glogg");
-
-    const existingCode = await persistence.load(store);
-    fs.writeFileSync(draftPath, existingCode, { encoding: "utf-8" });
-
-    childProcess.spawnSync(editor, [draftPath], { stdio: "inherit" });
-
-    const writtenCode = fs.readFileSync(draftPath, { encoding: "utf-8" });
-
-    if (writtenCode.trim() !== existingCode.trim()) {
-      const tmpPath = dbPath + ".tmp";
-      const tmpStore = await glogDb.setup(tmpPath);
-
-      await persistence.save(tmpStore, writtenCode);
-
-      store.close();
-      tmpStore.close();
-
-      fs.rmSync(dbPath);
-      fs.renameSync(tmpPath, dbPath);
-    } else {
-      store.close();
-    }
-
-    fs.rmSync(draftPath);
+    await glogg.edit(dbPath, editOpts);
   } catch (e) {
     console.error(e);
     process.exitCode = 1;
@@ -89,41 +59,47 @@ async function edit() {
 }
 
 async function make() {
-  const [dbExists, dbPath] = getDbPath();
+  const [dbExists, dbPath] = glogg.getDbPath();
 
   if (!dbExists) {
-    console.log("No database found, cannot start edit.");
+    console.error("No database found, cannot start edit.");
     process.exitCode = 1;
     return;
   }
 
-  const store = await glogDb.setup(dbPath);
-
   try {
-    const code = await codegen.make(store);
+    const code = await glogg.make(dbPath);
 
-    const bundlePath = path.join(process.cwd(), "app.js");
-
-    fs.writeFileSync(bundlePath, code, { encoding: "utf-8" });
+    const bundlePath = path.join(path.dirname(dbPath), "app.js");
+    fs.writeFileSync(bundlePath, code, { encoding: "utf8" });
   } catch (e) {
     console.error(e);
     process.exitCode = 1;
-  } finally {
-    store.close();
   }
 }
 
-function getDbPath() {
-  const dbPath = path.join(process.cwd(), "app.glogg.db");
-  const exists = fs.existsSync(dbPath);
+async function addIntegration(contextPrefix, importName) {
+  const [dbExists, dbPath] = glogg.getDbPath();
 
-  return [exists, dbPath];
+  if (!dbExists) {
+    console.error("No database found, cannot add integration.");
+    process.exitCode = 1;
+    return;
+  }
+
+  try {
+    await glogg.addIntegration(dbPath, contextPrefix, importName);
+  } catch (e) {
+    console.error(e);
+    process.exitCode = 1;
+  }
 }
 
 async function gitInit() {
   const gitPath = path.join(process.cwd(), ".git");
   if (!fs.existsSync(gitPath)) {
-    console.log("No git repo initialized!");
+    console.error("No git repo initialized!");
+    process.exitCode = 1;
     return;
   }
 
@@ -180,6 +156,10 @@ switch (cmd) {
     make();
     break;
 
+  case "integration":
+    addIntegration(process.argv[3], process.argv[4]);
+    break;
+
   case "git":
     const subcmd = process.argv[3];
 
@@ -188,7 +168,8 @@ switch (cmd) {
     } else if (subcmd === "diff") {
       diff();
     } else {
-      console.log("Unknown sub-command");
+      console.error("Unknown sub-command");
+      process.exitCode = 1;
     }
     break;
 
@@ -196,10 +177,12 @@ switch (cmd) {
     console.log(
       [
         "Welcome to the Gløgg language!",
-        "Available commands: init, edit",
+        "Available commands:",
         "",
         "init: setup a new database",
         "edit: edit contents of a database",
+        "make: compile the program into a runnable executable",
+        "add-integration: add a new integration",
         "git init: teach git how to diff gløgg code",
       ].join("\n"),
     );

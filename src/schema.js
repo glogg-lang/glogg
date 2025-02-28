@@ -34,5 +34,10 @@ export const migrations = [
       type TEXT NOT NULL,
       operation TEXT NOT NULL
     ) STRICT`,
+    `CREATE TABLE integration (
+      id INTEGER PRIMARY KEY,
+      import_name TEXT UNIQUE NOT NULL,
+      context_prefix TEXT NOT NULL
+    ) STRICT`,
   ],
 ];

@@ -3,11 +3,21 @@ import fs from "node:fs";
 import url from "node:url";
 
 export async function make(store) {
-  const runtimePrelude = 'import * as runtime from "glogg-lang/runtime";';
+  let imports = 'import * as runtime from "glogg-lang/runtime";\n';
 
-  let result = runtimePrelude + "\n\n";
+  const integrations = await db.all(
+    ["SELECT * FROM integration"].join("\n"),
+    {},
+    store,
+  );
 
-  result += "const db = runtime.init();\n\n";
+  for (let integration of integrations) {
+    imports += `import * as integration${integration.id} from "${integration.import_name}";\n`;
+  }
+
+  let result = imports + "\n";
+
+  result += "const db = new runtime.Db();\n\n";
 
   const unconditionalCommits = await db.all(
     [
@@ -33,6 +43,7 @@ export async function make(store) {
 
   const conditionals = await compileConditionalQueries(
     conditionalQueries,
+    integrations,
     store,
   );
 
@@ -42,6 +53,7 @@ export async function make(store) {
     0,
     "db",
     unconditionalCommits,
+    integrations,
     store,
   );
 
@@ -50,7 +62,7 @@ export async function make(store) {
   return result;
 }
 
-async function compileConditionalQueries(queries, store) {
+async function compileConditionalQueries(queries, integrations, store) {
   let result = "";
 
   for (const query of queries) {
@@ -141,6 +153,7 @@ async function compileConditionalQueries(queries, store) {
       indentLevel,
       "this",
       [commit],
+      integrations,
       store,
     );
 
@@ -161,10 +174,29 @@ function normalizeVariable(varName) {
   return varName.replace("-", "_");
 }
 
-async function compileCommits(indentLevel, dbName, commits, store) {
-  let result = line(indentLevel, `${dbName}.commit([`);
+async function compileCommits(
+  indentLevel,
+  dbName,
+  commits,
+  integrations,
+  store,
+) {
+  if (commits.length === 0) {
+    return line(indentLevel, `${dbName}.commit([]);`);
+  }
+
+  let result = "";
 
   for (const commit of commits) {
+    if (commit.context != null) {
+      const integration = integrations.find((i) => i.context_prefix);
+      if (integration != null) {
+        dbName = `integration${integration.id}`;
+      }
+    }
+
+    result += line(indentLevel, `${dbName}.commit([`);
+
     const clauses = await db.all(
       "SELECT * FROM clause WHERE commit_id = $commitId",
       { $commitId: commit.id },
@@ -178,22 +210,22 @@ async function compileCommits(indentLevel, dbName, commits, store) {
         store,
       );
 
-      const record = recordFromConstraints(commit.context, constraints);
+      const record = recordFromConstraints(constraints);
 
       result += line(indentLevel + 1, record + ",");
     }
-  }
 
-  result += line(indentLevel, "]);");
+    result += line(indentLevel, "]);");
+  }
 
   return result;
 }
 
-function recordFromConstraints(context, constraints) {
+function recordFromConstraints(constraints) {
   let result = "{";
 
   for (const constraint of constraints) {
-    const label = context ? `${context}/${constraint.label}` : constraint.label;
+    const label = constraint.label;
 
     let value = null;
     switch (constraint.type) {

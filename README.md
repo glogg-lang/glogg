@@ -140,22 +140,44 @@ commit @html:
   [ #div parent: body text: "Hello world" ]
 ```
 
-### Interop
+### Interop (WIP)
 
 Gløgg programs are _just_ data. To make something happen, you need to attach integrations. The idea here is that
 you can attach listeners for when certain events (record added, modified, deleted...) happen in a specific context.
 
-Maybe it could look like this:
+To register an integration, you'll need to run this:
+
+```
+glg integration terminal glogg-lang/terminal
+```
+
+`terminal` refers to the context the integration should be listening too. You can use whatever context name you'd like,
+the integration has no say in it.
+
+`glogg-lang/terminal` is the module name of the integration. When compiling your program, Gløgg will add a JS import
+with this module name.
+
+`glogg-lang/terminal` is a simple integration. It simply prints messages to the terminal. The integration looks like this:
 
 ```js
-const program = require("./app.js"); //compiled with glg make
+export function commit(recs) {
+  for (let rec of recs) {
+    if (typeof rec.message !== "string") {
+      continue;
+    }
 
-const listener = program.context("html");
+    if (rec.tag === "log") {
+      console.log(rec.message);
+    } else if (rec.tag === "error") {
+      console.error(rec.message);
+    }
+  }
+}
+```
 
-listener.on("new_record", (record) => {
-  const el = document.createElement(record.tag);
-  el.innerText = record.text;
+To actually send records to this integration, you just have to commit records to the configured context, like so:
 
-  document.body.addElement(el);
-});
+```
+commit @terminal:
+  [ #log message: "Hello, world!" ]
 ```

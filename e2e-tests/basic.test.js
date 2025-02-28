@@ -2,25 +2,25 @@ import proc from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
+import * as glogg from "glogg-lang";
 
 const tmpDir = ".e2etmp";
 const tmpDirPath = path.join(process.cwd(), tmpDir);
-const glg = path.join(process.cwd(), "bin", "glg");
+const dbPath = path.join(process.cwd(), tmpDir, "db");
 
 describe("E2E", () => {
-  beforeEach(() => {
-    fs.mkdirSync(tmpDir);
-    proc.execSync(`node ${glg} init`, {
-      cwd: tmpDirPath,
-    });
+  beforeEach(async () => {
+    fs.mkdirSync(tmpDirPath);
+    await glogg.init(dbPath);
+    await glogg.addIntegration(dbPath, "terminal", "glogg-lang/terminal");
   });
 
   afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDirPath, { recursive: true, force: true });
   });
 
-  it("ancestor query", () => {
-    const result = compileAndRun(`
+  it("ancestor query", async () => {
+    const result = await compileAndRun(`
 commit:
   [ #duck name: "Scrooge" ]
   [ #duck name: "Donald" uncle: "Scrooge" ]
@@ -31,7 +31,7 @@ commit:
 search:
   [ #duck name: scrooges-nephew uncle: "Scrooge" ]
   [ #duck name: name uncle: scrooges-nephew ]
-commit @stdio:
+commit @terminal:
   [ #log message: name ]
 `);
 
@@ -39,14 +39,12 @@ commit @stdio:
   });
 });
 
-function compileAndRun(code) {
-  proc.execSync(`node ${glg} edit --from=stdin`, {
-    cwd: tmpDirPath,
-    input: code.trim(),
-  });
+async function compileAndRun(code) {
+  await glogg.edit(dbPath, { code: code });
+  const compiled = await glogg.make(dbPath);
 
-  proc.execSync(`node ${glg} make`, {
-    cwd: tmpDirPath,
+  fs.writeFileSync(path.join(tmpDirPath, "app.js"), compiled, {
+    encoding: "utf8",
   });
 
   return proc.execSync("node app.js", {
