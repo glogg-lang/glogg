@@ -15,7 +15,7 @@ async function init() {
   const [dbExists, dbPath] = glogg.getDbPath();
 
   if (dbExists) {
-    console.log("Database already exists at: " + dbPath);
+    console.error("Database already exists at: " + dbPath);
     process.exitCode = 1;
     return;
   }
@@ -27,7 +27,7 @@ async function edit() {
   const [dbExists, dbPath] = glogg.getDbPath();
 
   if (!dbExists) {
-    console.log("No database found, start a new database with `glg init`.");
+    console.error("No database found, start a new database with `glg init`.");
     process.exitCode = 1;
     return;
   }
@@ -62,7 +62,7 @@ async function make() {
   const [dbExists, dbPath] = glogg.getDbPath();
 
   if (!dbExists) {
-    console.log("No database found, cannot start edit.");
+    console.error("No database found, cannot start edit.");
     process.exitCode = 1;
     return;
   }
@@ -82,7 +82,7 @@ async function addIntegration(contextPrefix, importName) {
   const [dbExists, dbPath] = glogg.getDbPath();
 
   if (!dbExists) {
-    console.log("No database found, cannot add integration.");
+    console.error("No database found, cannot add integration.");
     process.exitCode = 1;
     return;
   }
@@ -98,7 +98,8 @@ async function addIntegration(contextPrefix, importName) {
 async function gitInit() {
   const gitPath = path.join(process.cwd(), ".git");
   if (!fs.existsSync(gitPath)) {
-    console.log("No git repo initialized!");
+    console.error("No git repo initialized!");
+    process.exitCode = 1;
     return;
   }
 
@@ -167,7 +168,8 @@ switch (cmd) {
     } else if (subcmd === "diff") {
       diff();
     } else {
-      console.log("Unknown sub-command");
+      console.error("Unknown sub-command");
+      process.exitCode = 1;
     }
     break;
 

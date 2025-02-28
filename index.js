@@ -7,7 +7,8 @@ import * as persistence from "#src/persistence";
 import * as codegen from "#src/codegen";
 
 export async function init(dbPath) {
-  return await glogDb.setup(dbPath);
+  const store = await glogDb.setup(dbPath);
+  store.close();
 }
 
 export async function edit(dbPath, { editor, code }) {
